@@ -1,0 +1,38 @@
+* {
+    box-sizing: border-box;
+    font-family: nunito, serif;
+}
+
+.left-bar, .right-bar {
+    height: 85vh;
+}
+
+#transaction-history {
+    height: 90%;
+}
+
+td,th {
+    text-align: center;
+}
+
+.custom-pointer:hover {
+    cursor: pointer;
+}
+
+.btn-toggle {
+    width: 200px;
+    background: #1009d4;
+}
+
+#add-pay-print {
+    background: deepskyblue;
+}
+
+.add-pay-modal-info {
+    font-size: 14px;
+    color: grey;
+}
+
+.table-hover:hover {
+    cursor: pointer;
+}

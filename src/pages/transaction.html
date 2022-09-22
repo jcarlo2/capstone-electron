@@ -1,0 +1,27 @@
+<link rel="stylesheet" href="src/css/transaction.css">
+
+<div class="container-fluid d-flex">
+    <div class="left-bar w-50 border-dark border rounded container d-flex flex-column p-2">
+        <div class="left-receipt-return d-flex justify-content-evenly mb-2">
+            <button type="button" id="btn-transaction-add" class="btn btn-success">
+                Add Transaction
+            </button>
+            <button type="button" id="btn-transaction-return" class="btn btn-warning">
+                Return Transaction
+            </button>
+            <button type="button" id="btn-transaction-history" class="btn btn-info">
+                History
+            </button>
+        </div>
+
+        <div id="transaction-left" class="h-100">
+
+        </div>
+
+    </div>
+    <div id="transaction-right" class="overflow-auto ms-3 border border-dark rounded right-bar container p-2">
+
+    </div>
+    <script type="module" defer src="src/js/variable.js"></script>
+    <script type="module" defer src="src/js/pages/transaction.js"></script>
+</div>

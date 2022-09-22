@@ -1,0 +1,25 @@
+{
+  "name": "capstone",
+  "version": "1.0.0",
+  "description": "thesis project",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "John Carlo Vendiola",
+  "license": "MIT",
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.2.0",
+    "bootstrap": "^5.2.1",
+    "electron": "^20.1.4",
+    "jquery": "^3.6.1",
+    "logger": "^0.0.1",
+    "node-sass": "^7.0.3"
+  },"build": {
+      "extraFiles":["capstone-backend.jar"]
+  },
+  "devDependencies": {
+    "express": "^4.18.1",
+    "tree-kill": "^1.2.2"
+  }
+}

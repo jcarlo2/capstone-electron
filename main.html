@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Computerized Sales And Inventory</title>
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.css">
+    <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.css">
+  </head>
+  <body class="min-vh-100 p-2">
+    <div class="container-fluid d-flex justify-content-between">
+      <div class="d-flex justify-content-between">
+        <div class="pt-3">
+          <h6 id="main-user-name" class="h5 rounded bg-primary bg-opacity-25 border border-dark p-1">
+            EmployeeName
+          </h6>
+        </div>
+      </div>
+      <div>
+        <h1 class="border-bottom border-dark">
+          HBC Grocery
+        </h1>
+      </div>
+      <div class="p-2">
+        <button type="button" class="btn border-dark">
+          <i class="fa-solid fa-receipt"></i>
+          Transaction
+        </button>
+        <button type="button" class="btn border-dark">
+          <i class="fa-solid fa-cart-flatbed"></i>
+          Inventory
+        </button>
+        <button type="button" class="btn border-dark">
+          <i class="fa-solid fa-file"></i>
+          Generate
+        </button>
+        <button type="button" class="btn border-dark">
+          <i class="fa-sharp fa-solid fa-list"></i>
+          Logs
+        </button>
+        <button id="index-setting" type="button" class="rounded btn bg-opacity-25 bg-warning">
+          <i class="fa-solid fa-gear fa-xl"></i>
+        </button>
+      </div>
+    </div>
+    <hr>
+    <main id="main-section"></main >
+
+    <!-- transaction add product -->
+    <div class="modal fade" id="view-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 id="transaction-product-add-modal">Modal title</h3>
+            <div id="transaction-add-hidden"></div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body d-md-flex flex-column justify-content-center align-items-center">
+            <label class="p-0 m-0">
+              <div class="d-flex w-100">
+                <input id="transaction-add-modal-quantity" type="number" min="0" class="border border-dark form-control" value="0">
+                <div class="m-2">*</div>
+                <input id="transaction-add-modal-price" readonly type="text" class="w-50 text-center form-control-plaintext border rounded border-dark" value="&#8369; 0.00">
+              </div>
+              <div class="d-flex w-100 mb-2 justify-content-between">
+                <p class="h5 mt-3 me-3">Sum</p>
+                <input id="transaction-add-modal-sum" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" value="&#8369; 0.00">
+              </div>
+              <div class="d-flex w-100 mb-2 justify-content-between">
+                <p class="h5 mt-3 me-3">Discount</p>
+                <input id="transaction-add-modal-discount" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" value="0%">
+              </div>
+              <div class="d-flex w-100 mb-2 justify-content-between">
+                <p class="h5 mt-3 me-3">Total</p>
+                <input id="transaction-add-modal-total" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" value="&#8369; 0.00">
+              </div>
+            </label>
+          </div>
+          <div class="modal-footer">
+            <button id="transaction-add-btn-modal" type="button" class="btn btn-success" data-bs-dismiss="modal">Add Product</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- transaction add pay -->
+    <div class="modal fade" id="add-pay-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header d-flex justify-content-between">
+            <button id="add-pay-print" type="button" class="btn btn-success">PRINT</button>
+            <div class="dropdown">
+              <a id="add-pay-dropdown" class="btn-toggle btn btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Default
+              </a>
+              <ul class="dropdown-menu">
+                <li><a id="add-pay-dropdown-1" class="dropdown-item" href="#">Default</a></li>
+                <li><a id="add-pay-dropdown-2" class="dropdown-item" href="#">Senior</a></li>
+                <li><a id="add-pay-dropdown-3" class="dropdown-item" href="#">PWD</a></li>
+              </ul>
+            </div>
+            <button type="button" class="border-0 p-0 m-0" data-bs-dismiss="modal" aria-label="Close">
+              <i class="fa-regular fa-square-minus fa-xl"></i>
+            </button>
+          </div>
+          <div class="modal-body d-md-flex flex-column justify-content-center align-items-center">
+            <div class="d-flex flex-column align-content-start w-100">
+              <p id="add-pay-modal-id" class="add-pay-modal-info m-0">Ref No: TR0000000</p>
+              <p class="add-pay-modal-info m-0">Customer: Walk In Customer</p>
+              <p id="add-pay-modal-user" class="add-pay-modal-info m-0">Cashier: administrator</p>
+              <p id="add-pay-modal-date" class="add-pay-modal-info m-0">Date: September 09, 2022 10:41:56</p>
+              <p id="add-pay-modal-hidden" class="add-pay-modal-info p-0 m-0 d-none"></p>
+            </div>
+            <hr class="w-100">
+              <table class="table table-borderless">
+                <thead>
+                <tr>
+                  <th class="text-start" scope="col">Item</th>
+                  <th class="text-end" scope="col">Qty</th>
+                  <th class="text-end" scope="col">Price</th>
+                </tr>
+                </thead>
+                  <tbody id="add-pay-modal-body">
+                  </tbody>
+              </table>
+            <div class="fw-bold d-flex justify-content-end w-100">
+              <p id="add-pay-modal-total" class="border-top">Total: &#8369; 0.00</p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="transaction-add-pay-btn" type="button" class="btn btn-success" data-bs-dismiss="modal">CONFIRM</button>
+            <button id="transaction-add-cancel-btn" type="button" class="btn btn-danger" data-bs-dismiss="modal">CANCEL</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- transaction left list edit -->
+    <div class="modal fade" id="transaction-left-list-edit" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 id="transaction-left-edit-title">Modal title</h3>
+            <div id="transaction-left-edit-hidden" class="d-none"></div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body d-md-flex flex-column justify-content-center align-items-center">
+            <label>
+              <div class="d-flex w-100">
+                <input id="transaction-left-edit-quantity" type="number" min="0" class="border border-dark form-control" value="0">
+                <div class="m-2">*</div>
+                <input id="transaction-left-edit-price" readonly type="text" class="w-50 text-center form-control-plaintext border rounded border-dark" value="&#8369; 0.00">
+              </div>
+              <div class="d-flex w-100 mb-2 justify-content-between">
+                <p class="h5 mt-3 me-3">Sum</p>
+                <input id="transaction-left-edit-sum" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" value="&#8369; 0.00">
+              </div>
+              <div class="d-flex w-100 mb-2 justify-content-between">
+                <p class="h5 mt-3 me-3">Discount</p>
+                <input id="transaction-left-edit-discount" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" value="0%">
+              </div>
+              <div class="d-flex w-100 mb-2 justify-content-between">
+                <p class="h5 mt-3 me-3">Total</p>
+                <input id="transaction-left-edit-total" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" value="&#8369; 0.00">
+              </div>
+            </label>
+          </div>
+          <div class="modal-footer">
+            <button id="transaction-left-edit-button" type="button" class="btn btn-success" data-bs-dismiss="modal">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>window.$ = window.jQuery = require('jquery')</script>
+    <script src="node_modules/@popperjs/core/dist/umd/popper.min.js"></script>
+    <script src="node_modules/bootstrap/dist/js/bootstrap.js"></script>
+    <script type="module" defer src="src/js/main.js"></script>
+  </body>
+</html>

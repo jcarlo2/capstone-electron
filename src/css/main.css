@@ -1,0 +1,17 @@
+* {
+    box-sizing: border-box;
+    font-family: nunito, serif;
+}
+
+html, body {
+    height: 100%;
+}
+
+.color-default {
+    background: #588A40;
+}
+
+.color-grey {
+    background: darkgrey;
+}
+
