@@ -5,13 +5,11 @@
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.css">
     <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.css">
   </head>
-  <body class="min-vh-100 p-2">
+  <body class="min-vh-100 p-2 overflow-hidden">
     <div class="container-fluid d-flex justify-content-between">
       <div class="d-flex justify-content-between">
         <div class="pt-3">
-          <h6 id="main-user-name" class="h5 rounded bg-primary bg-opacity-25 border border-dark p-1">
-            EmployeeName
-          </h6>
+          <h6 id="main-user-name" class="h5 rounded bg-primary bg-opacity-25 border border-dark p-1">EmployeeName</h6>
         </div>
       </div>
       <div>
@@ -20,19 +18,19 @@
         </h1>
       </div>
       <div class="p-2">
-        <button type="button" class="btn border-dark">
+        <button id="main-transaction" type="button" class="btn border-dark">
           <i class="fa-solid fa-receipt"></i>
           Transaction
         </button>
-        <button type="button" class="btn border-dark">
+        <button id="main-inventory" type="button" class="btn border-dark">
           <i class="fa-solid fa-cart-flatbed"></i>
           Inventory
         </button>
-        <button type="button" class="btn border-dark">
+        <button id="main-generate" type="button" class="btn border-dark">
           <i class="fa-solid fa-file"></i>
           Generate
         </button>
-        <button type="button" class="btn border-dark">
+        <button id="main-log" type="button" class="btn border-dark">
           <i class="fa-sharp fa-solid fa-list"></i>
           Logs
         </button>
@@ -42,9 +40,17 @@
       </div>
     </div>
     <hr>
-    <main id="main-section"></main >
 
-    <!-- transaction add product -->
+    <!-- Loading Spinner -->
+    <div class="w-100 d-flex justify-content-center">
+      <div id="main-spinner" class="spinner-border text-success" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <main id="main-section" class="d-none"></main >
+
+    <!-- transaction add product to left list -->
     <div class="modal fade" id="view-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -56,7 +62,7 @@
           <div class="modal-body d-md-flex flex-column justify-content-center align-items-center">
             <label class="p-0 m-0">
               <div class="d-flex w-100">
-                <input id="transaction-add-modal-quantity" type="number" min="0" class="border border-dark form-control" value="0">
+                <input id="transaction-add-modal-quantity" type="number" min="0" class="border border-dark form-control" placeholder="Quantity">
                 <div class="m-2">*</div>
                 <input id="transaction-add-modal-price" readonly type="text" class="w-50 text-center form-control-plaintext border rounded border-dark" value="&#8369; 0.00">
               </div>
@@ -81,33 +87,31 @@
       </div>
     </div>
 
-    <!-- transaction add pay -->
+    <!-- transaction add pay now -->
     <div class="modal fade" id="add-pay-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
-          <div class="modal-header d-flex justify-content-between">
-            <button id="add-pay-print" type="button" class="btn btn-success">PRINT</button>
-            <div class="dropdown">
-              <a id="add-pay-dropdown" class="btn-toggle btn btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                Default
-              </a>
-              <ul class="dropdown-menu">
-                <li><a id="add-pay-dropdown-1" class="dropdown-item" href="#">Default</a></li>
-                <li><a id="add-pay-dropdown-2" class="dropdown-item" href="#">Senior</a></li>
-                <li><a id="add-pay-dropdown-3" class="dropdown-item" href="#">PWD</a></li>
-              </ul>
-            </div>
+          <div class="modal-header d-flex justify-content-end">
             <button type="button" class="border-0 p-0 m-0" data-bs-dismiss="modal" aria-label="Close">
               <i class="fa-regular fa-square-minus fa-xl"></i>
             </button>
           </div>
           <div class="modal-body d-md-flex flex-column justify-content-center align-items-center">
             <div class="d-flex flex-column align-content-start w-100">
+              <div class="d-flex mb-2">
+                <label class="d-flex">
+                  <input id="add-pay-payment" type="number" placeholder="Payment" autofocus class="w-50 me-2 form-control-sm border border-danger border-5">
+                  <i class="ms-2 pt-2 fa-solid fa-minus"></i>
+                  <input id="add-pay-total" type="text" placeholder="Total" readonly class="mx-2 text-center border border-1 border-dark w-25 form-control-sm">
+                  <i class="me-2 pt-2 fa-solid fa-equals"></i>
+                  <input id="add-pay-change" type="text" placeholder="Change" readonly class="border border-1 border-dark w-25 form-control-sm">
+                </label>
+              </div>
               <p id="add-pay-modal-id" class="add-pay-modal-info m-0">Ref No: TR0000000</p>
               <p class="add-pay-modal-info m-0">Customer: Walk In Customer</p>
               <p id="add-pay-modal-user" class="add-pay-modal-info m-0">Cashier: administrator</p>
               <p id="add-pay-modal-date" class="add-pay-modal-info m-0">Date: September 09, 2022 10:41:56</p>
-              <p id="add-pay-modal-hidden" class="add-pay-modal-info p-0 m-0 d-none"></p>
+              <div id="add-pay-modal-hidden" class="d-none"></div>
             </div>
             <hr class="w-100">
               <table class="table table-borderless">
@@ -126,8 +130,60 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button id="transaction-add-pay-btn" type="button" class="btn btn-success" data-bs-dismiss="modal">CONFIRM</button>
-            <button id="transaction-add-cancel-btn" type="button" class="btn btn-danger" data-bs-dismiss="modal">CANCEL</button>
+            <button id="transaction-add-modal-confirm" type="button" disabled class="btn btn-success" data-bs-dismiss="modal">CONFIRM</button>
+            <button id="transaction-add-cancel-now" type="button" class="btn btn-danger" data-bs-dismiss="modal">CANCEL</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- transaction return pay now -->
+    <div class="modal fade" id="return-pay-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header d-flex justify-content-between">
+            <button id="return-pay-print" type="button" class="btn btn-success">PRINT</button>
+            <div class="dropdown">
+              <a id="return-pay-dropdown" class="btn-toggle btn btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Default
+              </a>
+              <ul class="dropdown-menu">
+                <li><a id="return-pay-dropdown-1" class="dropdown-item" href="#">Default</a></li>
+                <li><a id="return-pay-dropdown-2" class="dropdown-item" href="#">Senior</a></li>
+                <li><a id="return-pay-dropdown-3" class="dropdown-item" href="#">PWD</a></li>
+              </ul>
+            </div>
+            <button type="button" class="border-0 p-0 m-0" data-bs-dismiss="modal" aria-label="Close">
+              <i class="fa-regular fa-square-minus fa-xl"></i>
+            </button>
+          </div>
+          <div class="modal-body d-md-flex flex-column justify-content-center align-items-center">
+            <div class="d-flex flex-column align-content-start w-100">
+              <p id="return-pay-modal-id" class="add-pay-modal-info m-0">Ref No: TR0000000</p>
+              <p class="add-pay-modal-info m-0">Customer: Walk In Customer</p>
+              <p id="return-pay-modal-user" class="add-pay-modal-info m-0">Cashier: administrator</p>
+              <p id="return-pay-modal-date" class="add-pay-modal-info m-0">Date: September 09, 2022 10:41:56</p>
+              <p id="return-pay-modal-hidden" class="add-pay-modal-info p-0 m-0 d-none"></p>
+            </div>
+            <hr class="w-100">
+            <table class="table table-borderless">
+              <thead>
+              <tr>
+                <th class="text-start" scope="col">Item</th>
+                <th class="text-end" scope="col">Qty</th>
+                <th class="text-end" scope="col">Price</th>
+              </tr>
+              </thead>
+              <tbody id="return-pay-modal-body">
+              </tbody>
+            </table>
+            <div class="fw-bold d-flex justify-content-end w-100">
+              <p id="return-pay-modal-total" class="border-top">Total: &#8369; 0.00</p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="transaction-return-pay-btn" type="button" class="btn btn-success" data-bs-dismiss="modal">CONFIRM</button>
+            <button id="transaction-return-cancel-btn" type="button" class="btn btn-danger" data-bs-dismiss="modal">CANCEL</button>
           </div>
         </div>
       </div>
@@ -170,10 +226,73 @@
       </div>
     </div>
 
+    <!-- transaction return item -->
+    <div class="modal modal-lg fade" id="transaction-return-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="d-flex flex-column">
+              <h3 id="transaction-return-title">Beef Tapa 250g</h3>
+              <h5 id="transaction-return-pieces">10 pcs</h5>
+            </div>
+            <div id="transaction-return-hidden"></div>
+            <div id="transaction-return-quantity"></div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body d-md-flex flex-column justify-content-center align-items-center">
+            <div class="dropdown">
+                <a id="return-item-drop" class="btn-toggle btn btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">None</a>
+                <ul class="dropdown-menu">
+                  <li><a id="return-item-drop-1" class="dropdown-item" href="#">None</a></li>
+                  <li><a id="return-item-drop-2" class="dropdown-item" href="#">Exp/Dmg</a></li>
+                  <li><a id="return-item-drop-3" class="dropdown-item" href="#">Return</a></li>
+                </ul>
+              </div>
+            <div id="return-item-main" class="d-none d-flex flex-column">
+              <hr class="w-100">
+              <div class="d-flex flex-column align-content-center">
+                <p class="h5">Returned Item</p>
+                <label>
+                  <div class="d-flex mt-2">
+                    <input id="return-item-ret-1" type="number" min="0" placeholder="Returned Quantity" class="w-25 form-control-sm py-0">
+                    <i class="fa-solid fa-asterisk pt-2 px-2"></i>
+                    <input id="return-item-ret-2" type="text" placeholder="&#8369; 0.00" readonly class="w-25 form-control-sm">
+                    <i class="px-2 pt-2 fa-solid fa-minus"></i>
+                    <input id="return-item-ret-4" type="text" value="0 %" readonly class="w-25 form-control-sm">
+                    <i class="pt-2 px-2 fa-solid fa-equals"></i>
+                    <input id="return-item-ret-3" type="text" placeholder="&#8369; 0.00" readonly class="w-25 form-control-sm">
+                  </div>
+                </label>
+              </div>
+              <hr class="w-100">
+              <div class="d-flex flex-column align-content-center">
+                <p class="h5">Original</p>
+                <label>
+                  <div class="d-flex mt-2">
+                    <input id="return-item-original-1" type="number" min="0" readonly placeholder="Quantity" class="w-25 form-control-sm py-0">
+                    <i class="fa-solid fa-asterisk pt-2 px-2"></i>
+                    <input id="return-item-original-2" type="text" placeholder="&#8369; Price" readonly class="w-25 form-control-sm">
+                    <i class="px-2 pt-2 fa-solid fa-minus"></i>
+                    <input id="return-item-original-4" type="text" value="0 %" readonly class="w-25 form-control-sm">
+                    <i class="pt-2 px-2 fa-solid fa-equals"></i>
+                    <input id="return-item-original-3" type="text" placeholder="&#8369; Total" readonly class="w-25 form-control-sm">
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="transaction-return-modal-update" type="button" class="btn btn-success" data-bs-dismiss="modal">Update</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>window.$ = window.jQuery = require('jquery')</script>
     <script src="node_modules/@popperjs/core/dist/umd/popper.min.js"></script>
     <script src="node_modules/bootstrap/dist/js/bootstrap.js"></script>
     <script type="module" defer src="src/js/main.js"></script>
+    <script type="module" defer src="src/js/keys.js"></script>
   </body>
 </html>

@@ -1,10 +1,30 @@
-import {ipcRenderer,ins} from "../../../variable.js";
+import {ipcRenderer, json_var, t_add_clear, t_add_pay, t_add_populate} from "../../../variable.js";
+import {add, multiply, subtract} from "../../../function.js";
 
 $().ready(() => {
     populateProductList()
     isReportIdExisting()
-
+    setAddClearButton()
+    setAddModalConfirm()
+    setAddPayNowDisable()
 })
+
+export function setAddClearButton() {
+    t_add_clear.setIntervalId(setInterval(()=> {
+        $('#transaction-add-clear').on('click',()=> {
+            $('#transaction-add-left-table').empty()
+            $('#transaction-add-left-table').removeClass()
+        })
+        if($('#transaction-add-clear').length === 1) clearInterval(t_add_clear.getIntervalId())
+    },1000))
+}
+
+export function setAddPayNowDisable() {
+    t_add_pay.setIntervalId(setInterval(()=> {
+        if($('#transaction-left-row-1').length === 0) $('#transaction-add-pay').prop('disabled',true)
+        else $('#transaction-add-pay').prop('disabled',false)
+    },1000))
+}
 
 export function populateProductList(){
     const interval = setInterval(()=> {
@@ -12,7 +32,7 @@ export function populateProductList(){
         if (search === '') findAllProduct()
         else findProductBySearch(search)
     },1000)
-    ins.setTransactionFindAllProduct(interval)
+    t_add_populate.setIntervalId(interval)
 }
 
 function findAllProduct() {
@@ -51,12 +71,12 @@ function populate(data) {
         const price = data[i]['price']
         const name = data[i]['name']
         let quantity = parseInt(data[i]['quantityPerPieces'])
-        const row = `<tr id="transaction-add-table-`+ id +`" class="transaction-add-item" data-bs-toggle="modal" data-bs-target="#view-modal">
-                        <th scope="row">`+ (i+1) +`</th>
-                        <td>`+ id +`</td>
-                        <td>`+ name +`</td>
-                        <td>&#8369; `+ price +`</td>
-                        <td>`+ quantity +`</td>
+        const row = `<tr id="transaction-add-table-`+ id +`" class="transaction-add-item d-flex" data-bs-toggle="modal" data-bs-target="#view-modal">
+                        <th class="col-1" scope="row">`+ (i+1) +`</th>
+                        <td class="col-2">`+ id +`</td>
+                        <td class="col-5">`+ name +`</td>
+                        <td class="col-2">&#8369; `+ price +`</td>
+                        <td class="col-2">`+ quantity +`</td>
                     </tr>`
         list.append(row)
         tableRowColor(quantity,id)
@@ -66,7 +86,6 @@ function populate(data) {
 }
 
 function tableRowColor(quantity,id) {
-    // FIX IF LOGIC
     const tableRow = $('#transaction-add-table-'+id)
     tableRow.addClass('bg-opacity-25')
     if(quantity === 0) tableRow.addClass('bg-danger')
@@ -90,7 +109,6 @@ function setInputChangeListener(id,name, price) {
                     countTotal(discount,price,quantity.val())
                 },
                 error:function (jqXHR, status, error) {
-
                 }
             })
         }
@@ -118,10 +136,14 @@ function setInitModal(button,name,price,id) {
 
 $('#view-modal').on('show.bs.modal',()=> {
     $('#transaction-add-modal-price').val('\u20B1 ' + 0)
-    $('#transaction-add-modal-quantity').val(0)
+    $('#transaction-add-modal-quantity').val('')
     $('#transaction-add-modal-sum').val('\u20B1 ' + 0)
     $('#transaction-add-modal-discount').val(0 + ' %')
     $('#transaction-add-modal-total').val('\u20B1 ' + 0)
+})
+
+$('#view-modal').on('shown.bs.modal',()=> {
+    $('#transaction-add-modal-quantity').focus()
 })
 
 $('#transaction-add-btn-modal').on('click',()=> {
@@ -141,6 +163,81 @@ $('#transaction-add-btn-modal').on('click',()=> {
     })
 })
 
+export function setAddModalConfirm() {
+    $('#transaction-add-modal-confirm').on('click',()=> {
+        const total = $('#add-pay-total').val().substring(2)
+        let i = 1;
+        while(true) {
+            const row = $('#transaction-left-row-'+i)
+            if(row.length === 0) break
+            const productId = row.prop('class').split(' ')[1]
+            json_var.t_add_report_item[i-1] = {
+                'num': '',
+                'productId':productId,
+                'name':$('#transaction-left-name-'+productId).text(),
+                'price':$('#transaction-left-hidden-'+productId).prop('class').split(' ')[2],
+                'sold':parseInt($('#transaction-left-quantity-'+productId).text()),
+                'soldTotal':$('#transaction-left-hidden-'+productId).prop('class').split(' ')[1],
+                'discountPercentage':$('#transaction-left-hidden-'+productId).prop('class').split(' ')[0],
+                'totalAmount':$('#transaction-left-total-'+productId).text().substring(2).replace(',',''),
+                'uniqueId':$('#transaction-add-report').text().substring(4),
+            }
+            i++
+        }
+        makeReport(total)
+        saveReportItem($('#transaction-add-report').text().substring(4))
+    })
+}
+
+function saveReportItem(reportId) {
+    $.ajax({
+        url: 'http://localhost:8080/api/transaction/save-report-item',
+        contentType: 'application/json',
+        data: JSON.stringify(json_var.t_add_report_item),
+        processData: false,
+        dataType: 'json',
+        type: 'POST',
+        success: function (response) {
+            if(response) saveReport(reportId)
+            else ipcRenderer.send('showError','Add Transaction', 'Insufficient product count')
+        }
+    })
+}
+
+function makeReport(total) {
+    const id = $('#transaction-add-report').text().substring(4)
+    const user = $('#main-user-name').text()
+    json_var.t_add_report[0] = {
+        'id': id,
+        'user': user,
+        'date': '',
+        'timestamp': '',
+        'isValid': '1',
+        'totalAmount': total.replace(',',''),
+        'oldId': '',
+        'credit': '0',
+    }
+}
+
+function saveReport(reportId) {
+    $.ajax({
+        url: 'http://localhost:8080/api/transaction/save-report',
+        contentType: 'application/json',
+        dataType: 'json',
+        type: 'POST',
+        data: JSON.stringify(json_var.t_add_report[0]),
+        success: function (response) {
+            if(response) {
+                json_var.t_add_report = []
+                json_var.t_add_report_item = []
+                ipcRenderer.send('showMessage','Report', reportId + ' save successfully')
+                $('#transaction-add-left-table').empty()
+                $('#transaction-add-left-table').removeClass()
+            }
+        }
+    })
+}
+
 function addProductToLeftList(quantity,id,discount,isEdit) {
     const name = isEdit ? $('#transaction-left-edit-title').text() : $('#transaction-product-add-modal').text()
     const price = isEdit ? $('#transaction-left-edit-price').val() : $('#transaction-add-modal-price').val()
@@ -154,10 +251,14 @@ function addProductToLeftList(quantity,id,discount,isEdit) {
                     <td id="transaction-left-quantity-`+ id +`">`+ quantity +`</td>
                     <td id="transaction-left-total-`+ id +`">&#8369; `+ total.toLocaleString() +`</td>
                     <td id="transaction-left-`+ id +`">
+                        <div id="transaction-left-hidden-`+ id +`"></div>
                         <i id="transaction-row-add-`+ id +`" class="custom-pointer fa-solid fa-rectangle-xmark text-danger"></i>
                     </td>
                 </tr>`
     table.append(row)
+    $('#transaction-left-hidden-'+id).addClass(discount)
+    $('#transaction-left-hidden-'+id).addClass(multiply(quantity,price.substring(2)).toString())
+    $('#transaction-left-hidden-'+id).addClass(price.substring(2))
     setProductRemoveButton($('#transaction-row-add-'+id),id,total)
     calculateTotalPrice(total)
     setLeftRowOption($('#transaction-left-option-'+id),name,quantity,price,id)
@@ -299,35 +400,43 @@ $('#transaction-add-clear').on('click',()=> {
     clear()
 })
 
-$('#add-pay-dropdown-1').on('click',()=> {
-    $('#add-pay-dropdown').text('Default')
-    $('#add-pay-modal-hidden').addClass('d-none')
-})
-
-$('#add-pay-dropdown-2').on('click',()=> {
-    const hidden = $('#add-pay-modal-hidden')
-    $('#add-pay-dropdown').text('Senior')
-    hidden.text('Version: senior')
-    hidden.removeClass('d-none')
-})
-
-$('#add-pay-dropdown-3').on('click',()=> {
-    const hidden = $('#add-pay-modal-hidden')
-    $('#add-pay-dropdown').text('PWD')
-    hidden.text('Version: pwd')
-    hidden.removeClass('d-none')
-})
-
 $('#add-pay-modal').on('show.bs.modal',()=> {
     const user = $('#main-user-name').text()
     const id = $('#transaction-add-report').text()
     $('#add-pay-modal-id').text('Ref No: ' + id.substring(4))
     $('#add-pay-modal-user').text('Cashier: ' + user)
     $('#add-pay-modal-date').text('Date: ' + getDate())
-    setPayModal()
+    $('#add-pay-payment').val('')
+    $('#add-pay-change').val('')
+    setAddPayModalItem()
 })
 
-function setPayModal() {
+$('#add-pay-modal').on('shown.bs.modal',()=> {
+    $('#add-pay-payment').focus()
+})
+
+$('#transaction-left-list-edit').on('shown.bs.modal',()=> {
+    $('#transaction-left-edit-quantity').focus()
+})
+
+$('#add-pay-payment').on('keyup',()=> {
+    const total = $('#add-pay-total').val().substring(2).replace(',','')
+    let payment = $('#add-pay-payment').val()
+    payment = payment === '' ? 0 : payment
+    const newChange = subtract(payment,total).toLocaleString()
+    $('#add-pay-change').val('\u20B1 ' + newChange)
+    if(parseFloat(newChange) >= 0) {
+        $('#add-pay-payment').removeClass('border-danger')
+        $('#add-pay-payment').addClass('border-success')
+        setTimeout(()=>$('#transaction-add-modal-confirm').prop('disabled',false),500)
+    }else {
+        $('#add-pay-payment').removeClass('border-success')
+        $('#add-pay-payment').addClass('border-danger')
+        $('#transaction-add-modal-confirm').prop('disabled',true)
+    }
+})
+
+function setAddPayModalItem() {
     const body = $('#add-pay-modal-body')
     body.empty()
     $('#add-pay-modal-total').text('Total: \u20B1 0.00')
@@ -345,6 +454,7 @@ function setPayModal() {
         body.append(row)
         i++
     }
+    $('#add-pay-total').val($('#add-pay-modal-total').text().substring(7))
 }
 
 function getAllProduct(num) {
@@ -354,14 +464,14 @@ function getAllProduct(num) {
     const name = $('#transaction-left-name-'+id).text()
     const total = $('#transaction-left-total-'+id).text()
     const quantity = $('#transaction-left-quantity-'+id).text()
-    calculateTotalToPay(total.substring(2))
+    calculateTotalToPay(total.substring(2).replace(',',''))
     return [name,total,quantity,id]
 }
 
 function calculateTotalToPay(total) {
     const elem = $('#add-pay-modal-total')
-    const elemText = elem.text().substring(9)
-    elem.text('Total: \u20B1 ' + (parseFloat(elemText) + parseFloat(total)))
+    const elemText = elem.text().substring(9).replace(',','')
+    elem.text('Total: \u20B1 ' + add(elemText,total).toLocaleString())
 }
 
 export function getDate() {
@@ -379,3 +489,4 @@ export function getDate() {
 
     return MM + '/' + dd + '/' + yyyy + ' ' + hh + ':' + mm + ':' + ss
 }
+

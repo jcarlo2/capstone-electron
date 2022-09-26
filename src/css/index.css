@@ -1,3 +1,8 @@
+* {
+  box-sizing: border-box;
+  font-family: nunito, serif;
+}
+
 body {
   background: #1a1e23;
   margin: 0;

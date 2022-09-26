@@ -7,8 +7,8 @@ const port = express()
 port.listen(3000)
 const {app, BrowserWindow, Menu, ipcMain, dialog} = electron
 
+let logInWindow;
 let mainWindow;
-let addWindow;
 let serverProcess;
 
 const mainMenuTemplate = [
@@ -17,12 +17,9 @@ const mainMenuTemplate = [
 app.on('ready',()=> {
     startServer();
 
-    mainWindow = new BrowserWindow({
-        minWidth: 800,
-        minHeight: 600,
+    logInWindow = new BrowserWindow({
         resizable: false,
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: true,
             contextIsolation: false,
         }
@@ -31,11 +28,11 @@ app.on('ready',()=> {
     const mainMenu = Menu.buildFromTemplate(mainMenuTemplate)
     Menu.setApplicationMenu(mainMenu)
 
-    mainWindow.loadFile('index.html')
-    mainWindow.maximize()
-    mainWindow.on('closed', ()=> {
+    logInWindow.loadFile('index.html')
+    logInWindow.maximize()
+    logInWindow.on('closed', ()=> {
         kill(serverProcess.pid);
-        mainWindow = null
+        logInWindow = null
     })
 })
 
@@ -52,11 +49,7 @@ function startServer(){
 }
 
 function createWindow(filePath,is_maximized) {
-     addWindow = new BrowserWindow({
-        minWidth: 1024,
-        minHeight: 768,
-        height: 1024,
-        width: 768,
+     mainWindow = new BrowserWindow({
         resizable: false,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
@@ -65,16 +58,16 @@ function createWindow(filePath,is_maximized) {
         }
     })
 
-    addWindow.loadFile(filePath)
+    mainWindow.loadFile(filePath)
 
-    addWindow.on('closed',()=> {
+    mainWindow.on('closed',()=> {
         kill(serverProcess.pid);
         app.quit()
-        addWindow = null
+        mainWindow = null
     })
 
-    if(is_maximized) addWindow.maximize()
-    return addWindow
+    if(is_maximized) mainWindow.maximize()
+    return mainWindow
 }
 
 ipcMain.on('login:verify',(e,is_verified,id)=> {
@@ -84,10 +77,14 @@ ipcMain.on('login:verify',(e,is_verified,id)=> {
         window.webContents.once('did-finish-load',()=> {
             window.webContents.send('login:verify',id)
         })
-        mainWindow.hide()
+        logInWindow.hide()
     }
 })
 
 ipcMain.on('showError',(e,title,message)=> {
     dialog.showErrorBox(title,message)
+})
+
+ipcMain.on('showMessage',(e,title,message)=> {
+    dialog.showMessageBoxSync(mainWindow,{title: title, message: message, type: 'none'})
 })
