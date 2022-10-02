@@ -1,7 +1,7 @@
-import {setTransactionButton} from "./pages/transaction.js";
-import {ipcRenderer, t_add_populate, t_ret_populate, t_ret_clear} from "./variable.js";
-import {populateProductList, setAddClearButton} from "./pages/action/transaction/add.js";
-import {setReturnResetButton, setReturnPayNow} from "./pages/action/transaction/return.js";
+import {clear, setTransactionButton} from "./pages/transaction.js";
+import {ipcRenderer} from "./variable.js";
+import {startAdd, setAddClearButton} from "./pages/action/transaction/add.js";
+import {setReturnResetButton} from "./pages/action/transaction/return.js";
 
 
 $().ready(() => {
@@ -21,13 +21,12 @@ $().ready(() => {
         main.load('src/pages/transaction.html')
         clear()
         setTimeout(()=> {
-            populateProductList()
             $('#transaction-left').load('src/pages/transaction/left-add.html')
             $('#transaction-right').load('src/pages/transaction/right-add.html')
             spinner.addClass('d-none')
             main.removeClass('d-none')
+            startAdd()
             setTransactionButton()
-            setReturnPayNow()
             setReturnResetButton()
             setAddClearButton()
         },1000)
@@ -48,11 +47,5 @@ $().ready(() => {
         clear()
     })
 })
-
-function clear() {
-    clearInterval(t_add_populate.getIntervalId())
-    clearInterval(t_ret_populate.getIntervalId())
-    clearInterval(t_ret_clear.getIntervalId())
-}
 
 

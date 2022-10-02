@@ -10,6 +10,7 @@ const {app, BrowserWindow, Menu, ipcMain, dialog} = electron
 let logInWindow;
 let mainWindow;
 let serverProcess;
+let returnResponse
 
 const mainMenuTemplate = [
 ]
@@ -76,9 +77,11 @@ ipcMain.on('login:verify',(e,is_verified,id)=> {
         window.webContents.openDevTools()
         window.webContents.once('did-finish-load',()=> {
             window.webContents.send('login:verify',id)
+            mainWindow.webContents.send('returnResponse', returnResponse)
         })
         logInWindow.hide()
     }
+
 })
 
 ipcMain.on('showError',(e,title,message)=> {
@@ -86,5 +89,18 @@ ipcMain.on('showError',(e,title,message)=> {
 })
 
 ipcMain.on('showMessage',(e,title,message)=> {
-    dialog.showMessageBoxSync(mainWindow,{title: title, message: message, type: 'none'})
+    dialog.showMessageBoxSync(mainWindow,{
+        title: title,
+        message: message,
+        type: 'none'})
+})
+
+ipcMain.on('return',(e,id)=> {
+    returnResponse = dialog.showMessageBoxSync(mainWindow,{
+        title: 'Transaction History',
+        message: 'Delete ' + id,
+        type: 'none',
+        noLink: true,
+        defaultId: 2,
+        buttons:['Delete','Delete All','Cancel']})
 })

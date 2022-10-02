@@ -1,8 +1,8 @@
 import {ipcRenderer, json_var, t_add_clear, t_add_pay, t_add_populate} from "../../../variable.js";
-import {add, multiply, subtract} from "../../../function.js";
+import {add, getDate, multiply, subtract} from "../../../function.js";
 
 $().ready(() => {
-    populateProductList()
+    startAdd()
     isReportIdExisting()
     setAddClearButton()
     setAddModalConfirm()
@@ -26,7 +26,7 @@ export function setAddPayNowDisable() {
     },1000))
 }
 
-export function populateProductList(){
+export function startAdd(){
     const interval = setInterval(()=> {
         const search = $('#transaction-add-search').val()
         if (search === '') findAllProduct()
@@ -107,8 +107,6 @@ function setInputChangeListener(id,name, price) {
                     const discount = response['discount'] ? response['discount'] : 0;
                     $('#transaction-add-modal-discount').val(discount + ' %')
                     countTotal(discount,price,quantity.val())
-                },
-                error:function (jqXHR, status, error) {
                 }
             })
         }
@@ -286,9 +284,6 @@ function setLeftRowOption(link,name,quantity,price,id) {
                 $('#transaction-left-edit-hidden').addClass(id)
                 $('#transaction-left-list-edit').modal('show')
                 leftEditButton()
-            },
-            error:function (jqXHR, status, error) {
-
             }
         })
     })
@@ -322,9 +317,6 @@ $('#transaction-left-edit-quantity').on('keyup',()=> {
             $('#transaction-left-edit-sum').val('\u20B1 ' + sum.toLocaleString())
             $('#transaction-left-edit-discount').val(discount + ' %')
             $('#transaction-left-edit-total').val('\u20B1 ' + total.toLocaleString())
-        },
-        error:function (jqXHR, status, error) {
-
         }
     })
 })
@@ -474,19 +466,5 @@ function calculateTotalToPay(total) {
     elem.text('Total: \u20B1 ' + add(elemText,total).toLocaleString())
 }
 
-export function getDate() {
-    let today = new Date();
-    const dd = String(today.getDate()).padStart(2, '0');
-    const MM = String(today.getMonth() + 1).padStart(2, '0');
-    const yyyy = today.getFullYear();
-    let hh = today.getHours()
-    let mm = today.getMinutes()
-    let ss = today.getSeconds()
 
-    hh = hh < 10 ? '0' + hh : hh
-    mm = mm < 10 ? '0' + mm : mm
-    ss = ss < 10 ? '0' + ss : ss
-
-    return MM + '/' + dd + '/' + yyyy + ' ' + hh + ':' + mm + ':' + ss
-}
 

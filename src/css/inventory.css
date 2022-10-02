@@ -1,0 +1,16 @@
+* {
+    box-sizing: border-box;
+    font-family: nunito, serif;
+}
+
+.left-bar, .right-bar {
+    height: 85vh;
+}
+
+#transaction-history {
+    height: 90%;
+}
+
+#transaction-left {
+    height: 94%;
+}

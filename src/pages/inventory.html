@@ -1,3 +1,23 @@
-<div>
-  <h1>INVENTORY</h1>
+<link rel="stylesheet" href="src/css/inventory.css">
+<div class="container-fluid d-flex">
+  <div class="left-bar w-50 border-dark border rounded container d-flex flex-column p-2">
+    <div class="left-receipt-return d-flex justify-content-evenly mb-2">
+      <button type="button" id="btn-inventory-add" class="btn btn-success">
+        Add
+      </button>
+      <button type="button" id="btn-inventory-null" class="btn btn-warning">
+        Null
+      </button>
+      <button type="button" id="btn-inventory-history" class="btn btn-info">
+        History
+      </button>
+      <button type="button" id="btn-inventory-product" class="btn btn-info">
+        Product
+      </button>
+    </div>
+
+    <div id="inventory-left" class="h-100"></div>
+  </div>
+  <div id="inventory-right" class="overflow-auto ms-3 border border-dark rounded right-bar container p-2"></div>
 </div>
+<script src="src/js/pages/inventory.js"></script>
