@@ -1,17 +1,27 @@
-import {t_ret_populate, json_var, ipcRenderer, t_ret_clear, t_ret_new_total} from "../../../variable.js";
+import {t_ret_populate, json_var, ipcRenderer, t_ret_clear, t_ret_new_total, ip} from "../../../variable.js";
 import {multiply, divide, subtract, getDate} from "../../../function.js";
 
-$().ready(()=> {
+export function startReturn() {
+    t_ret_populate.setIntervalId(setInterval(()=> {
+        const search = $('#transaction-return-left-search').val()
+        const start = $('#transaction-return-start').val()
+        const end = $('#transaction-return-end').val()
+        if(search !== '') getAllReportBySearch(search)
+        else if(start !== '' && end === '') getAllReportByStart(start)
+        else if(start === '' && end !== '') getAllReportByEnd(end)
+        else if(start !== '' && end !== '') getAllReportByDate(start,end)
+        else getAllReport()
+    },1000))
     setReturnResetButton()
     setNewTotal()
-})
+}
 
-export function setReturnResetButton() {
+function setReturnResetButton() {
     t_ret_clear.setIntervalId(setInterval(()=> {
         $('#transaction-return-table-reset').on('click',()=> {
             const id = $('#right-return-id').val()
             $.ajax({
-                url: 'http://localhost:8080/api/transaction/find-all-item',
+                url: ip.url + '/api/transaction/find-all-item',
                 type: 'GET',
                 contentType: 'application/json',
                 data:{'id': id},
@@ -25,37 +35,25 @@ export function setReturnResetButton() {
     },1000))
 }
 
-export function setNewTotal() {
+function setNewTotal() {
     t_ret_new_total.setIntervalId(setInterval(()=> {
         const table = json_var.t_ret_table
+        if(table.length === 0)  {
+            $('#right-return-credit').val('')
+            return
+        }
         let newTotal = 0
         for(let i=0;i<table.length;i++) {
             newTotal += table[i]['totalAmount'] ? parseFloat(table[i]['totalAmount']) : 0
         }
-        if(table[0]['totalAmount'] === undefined)  $('#right-return-credit').val('')
-        else $('#right-return-credit').val('\u20B1 ' + parseFloat(newTotal.toString()).toLocaleString())
-    },1000))
-}
-
-export function startReturn() {
-    t_ret_populate.setIntervalId(setInterval(()=> {
-        const search = $('#transaction-return-left-search').val()
-        const start = $('#transaction-return-start').val()
-        const end = $('#transaction-return-end').val()
-        if(search !== '') getAllReportBySearch(search)
-        else if(start !== '' && end === '') getAllReportByStart(start)
-        else if(start === '' && end !== '') getAllReportByEnd(end)
-        else if(start !== '' && end !== '') getAllReportByDate(start,end)
-        else getAllReport()
+        $('#right-return-credit').val('\u20B1 ' + newTotal.toLocaleString())
     },1000))
 }
 
 function getAllReportBySearch(search) {
     $.ajax({
-        url: 'http://localhost:8080/api/transaction/search-transaction',
+        url: ip.url + '/api/transaction/search-transaction',
         data: {'search': search},
-        contentType: 'application/json',
-        dataType:'json',
         success: function (response) {
             populate(response)
         }
@@ -64,7 +62,7 @@ function getAllReportBySearch(search) {
 
 function getAllReportByDate(start,end) {
     $.ajax({
-        url: 'http://localhost:8080/api/transaction/search-end',
+        url: ip.url + '/api/transaction/search-end',
         data: {
             'start':start,
             'end': end
@@ -79,7 +77,7 @@ function getAllReportByDate(start,end) {
 
 function getAllReportByEnd(end) {
     $.ajax({
-        url: 'http://localhost:8080/api/transaction/search-end',
+        url: ip.url + '/api/transaction/search-end',
         data: {'end': end},
         contentType: 'application/json',
         dataType:'json',
@@ -91,7 +89,7 @@ function getAllReportByEnd(end) {
 
 function getAllReportByStart(start) {
     $.ajax({
-        url: 'http://localhost:8080/api/transaction/search-start',
+        url: ip.url + '/api/transaction/search-start',
         data: {'start': start},
         contentType: 'application/json',
         success: function (response) {
@@ -102,7 +100,7 @@ function getAllReportByStart(start) {
 
 function getAllReport() {
     $.ajax({
-        url: 'http://localhost:8080/api/transaction/get-all-report',
+        url: ip.url + '/api/transaction/get-all-report',
         success: function (response) {
             populate(response)
         }
@@ -115,10 +113,10 @@ function populate(data) {
     body.empty()
     for(let i=0;i<data.length;i++) {
         body.addClass(data[i]['id'])
-        const row = `<tr id="return-`+ data[i]['id'] +`">
-                        <th scope="row">`+ (i+1) +`</th>
-                        <td>`+ data[i]['id'] +`</td>
-                        <td>`+ data[i]['timestamp'] +`</td>
+        const row = `<tr class="d-flex" id="return-`+ data[i]['id'] +`">
+                        <th class="col-1" scope="row">`+ (i+1) +`</th>
+                        <td class="col-7 text-start" >`+ data[i]['id'] +`</td>
+                        <td class="col-4">`+ data[i]['timestamp'] +`</td>
                     </tr>`
         body.append(row)
         setDoubleClick(data[i]['id'],data[i]['timestamp'],data[i]['totalAmount'])
@@ -128,7 +126,7 @@ function populate(data) {
 function setDoubleClick(id,timestamp,total) {
     $('#return-'+id).on('dblclick',()=> {
         $.ajax({
-            url: 'http://localhost:8080/api/transaction/new-report-id',
+            url: ip.url + '/api/transaction/new-report-id',
             type: 'GET',
             contentType: 'application/json',
             data:{'id': id},
@@ -146,7 +144,7 @@ function setDoubleClick(id,timestamp,total) {
 
 function setTable(id) {
     $.ajax({
-        url: 'http://localhost:8080/api/transaction/find-all-item',
+        url: ip.url + '/api/transaction/find-all-item',
         type: 'GET',
         contentType: 'application/json',
         data:{'id': id},
@@ -183,6 +181,7 @@ function setReturnedItemModal(data,row,i) {
     row.on('click',()=> {
         getOriginalData(i)
         $('#transaction-return-hidden').addClass(data['productId'])
+        $('#transaction-return-hidden').addClass(data['capital'])
         $('#transaction-return-title').text(data['name'])
         $('#return-item-ret-2').val('\u20B1 ' + data['price'])
         $('#return-item-ret-4').val(data['discountPercentage'] + ' %')
@@ -198,7 +197,7 @@ function setReturnedItemModal(data,row,i) {
 function getOriginalData(i) {
     const id = $('#right-return-id').val()
     $.ajax({
-        url: 'http://localhost:8080/api/transaction/find-all-item',
+        url: ip.url + '/api/transaction/find-all-item',
         type: 'GET',
         contentType: 'application/json',
         data:{'id': id},
@@ -262,33 +261,35 @@ $('#transaction-return-modal-update').on('click',()=> {
     const table = json_var.t_ret_table
     const nullTable = json_var.t_ret_table_null
     const id = $('#transaction-return-hidden').prop('class').split(' ')[0]
+    const name = $('#transaction-return-title').text()
+    const capital = $('#transaction-return-hidden').prop('class').split(' ')[1]
     const discount = $('#return-item-ret-4').val().split(' ')[0]
     const price = $('#return-item-original-2').val().substring(2)
     let originalQuantity = $('#transaction-return-quantity').prop('class').split(' ')[0]
-
     if(reason === 'None') noneReason(table,nullTable,id,originalQuantity,price,discount)
-    else withReason(table,nullTable,price,discount,id)
+    else withReason(table,nullTable,price,discount,id,capital,name)
     populateTable(table)
     $('#transaction-return-pay-now').prop('disabled', true)
     setTimeout(()=> $('#transaction-return-pay-now').prop('disabled', false),500)
 })
 
-function withReason(table,nullTable,price,discount,id) {
+function withReason(table,nullTable,price,discount,id,capital,name) {
     let quantity = $('#return-item-original-1').val()
     const total = $('#return-item-original-3').val().substring(2)
     let retQuantity = $('#return-item-ret-1').val()
     const retTotal = $('#return-item-ret-3').val().substring(2)
     quantity = quantity === '' ? 0 : quantity
     retQuantity = retQuantity === '' ? 0 : retQuantity
-    updateTable(table,quantity,price,total,id)
-    updateNullTable(nullTable,id,price,retQuantity,discount,$('#return-item-drop').text(),retTotal)
+    if(retQuantity <= 0) ipcRenderer.send('showError','Return item','Error: check returned item count')
+    else {
+        updateTable(table,quantity,price,total,id)
+        updateNullTable(nullTable,id,price,retQuantity,discount,$('#return-item-drop').text(),retTotal,capital,name)
+    }
 }
 
 function noneReason(table,nullTable,id,quantity,price,discount) {
     for(let i=0;i<nullTable.length;i++) {
-        if(nullTable[i]['id'] === id) {
-            nullTable.splice(i,1)
-        }
+        if(nullTable[i]['id'] === id) nullTable.splice(i,1)
     }
     for(let i=0;i<table.length;i++) {
         if(table[i].productId === id) {
@@ -301,7 +302,7 @@ function noneReason(table,nullTable,id,quantity,price,discount) {
     }
 }
 
-function updateNullTable(table,id,price,quantity,discount,reason,total) {
+function updateNullTable(table,id,price,quantity,discount,reason,total,capital,name) {
     let flag = true
     for(let i=0;i<table.length;i++) {
         if(table[i]['id'] === id) {
@@ -317,12 +318,15 @@ function updateNullTable(table,id,price,quantity,discount,reason,total) {
         table[table.length] = {
             'num': '',
             'id': id,
+            'name': name,
             'price': price,
             'quantity': quantity,
             'discount': discount,
             'total': parseFloat(total.replace(',','')),
+            'capital': capital,
             'reportId': '',
             'reason': reason,
+            'link': $('#right-return-new-id').val(),
         }
     }
 }
@@ -343,12 +347,12 @@ $('#transaction-return-modal-confirm').on('click',()=> {
         makeTransactionReport()
         makeNullReport()
         invalidateReport()
-    }else ipcRenderer.send('showError','Return Error', 'Invalid: no items to return')
+    }else ipcRenderer.send('showError','Return item', 'Invalid: no items to return')
 })
 
 function invalidateReport() {
     $.ajax({
-        url: 'http://localhost:8080/api/transaction/invalidate-report',
+        url: ip.url + '/api/transaction/invalidate-report',
         contentType: 'application/json',
         dataType: 'json',
         data: {'id': $('#right-return-id').val()},
@@ -377,7 +381,7 @@ function makeTransactionReport() {
 
 function saveTransactionReport() {
     $.ajax({
-        url: 'http://localhost:8080/api/transaction/save-report',
+        url: ip.url + '/api/transaction/save-report',
         contentType: 'application/json',
         dataType: 'json',
         type: 'POST',
@@ -390,7 +394,7 @@ function saveTransactionReport() {
 
 function saveTransactionReportItem() {
     $.ajax({
-        url: 'http://localhost:8080/api/transaction/save-return-report-item',
+        url: ip.url + '/api/transaction/save-return-report-item',
         contentType: 'application/json',
         dataType: 'json',
         type: 'POST',
@@ -412,11 +416,35 @@ function saveNullItem(id) {
         table[i]['reportId'] = id
     }
     $.ajax({
-        url: 'http://localhost:8080/api/inventory/save-return-report-item',
+        url: ip.url + '/api/inventory/save-return-report-item',
         contentType: 'application/json',
         type: 'POST',
         dataTYpe: 'json',
         data: JSON.stringify(table),
+        success: ()=> {
+            saveNullReport(id)
+        }
+    })
+}
+
+function clearField() {
+    json_var.t_ret_table_null = []
+    json_var.t_ret_table = []
+    $('#transaction-return-item-body').empty()
+    $('#right-return-new-id').val('')
+    $('#right-return-id').val('')
+    $('#right-return-date').val('')
+    $('#right-return-credit').val('')
+    $('#right-return-total').val('')
+}
+
+function saveNullReport() {
+    $.ajax({
+        url: ip.url + '/api/inventory/save-report-null',
+        contentType: 'application/json',
+        type: 'POST',
+        dataTYpe: 'json',
+        data: JSON.stringify(json_var.t_inventory_report_null),
         success: (response)=> {
             const report = $('#right-return-new-id').val()
             if(response) {
@@ -427,31 +455,9 @@ function saveNullItem(id) {
     })
 }
 
-function clearField() {
-    $('#transaction-return-item-body').empty()
-    $('#right-return-new-id').val('')
-    $('#right-return-id').val('')
-    $('#right-return-date').val('')
-    $('#right-return-credit').val('')
-    $('#right-return-total').val('')
-}
-
-function saveNullReport(id) {
-    $.ajax({
-        url: 'http://localhost:8080/api/inventory/save-report-null',
-        contentType: 'application/json',
-        type: 'POST',
-        dataTYpe: 'json',
-        data: JSON.stringify(json_var.t_inventory_report_null),
-        success: ()=> {
-            saveNullItem( id)
-        }
-    })
-}
-
 function makeNullReport() {
     $.ajax({
-        url: 'http://localhost:8080/api/inventory/generate-id-null',
+        url: ip.url + '/api/inventory/generate-id-null',
         type: 'GET',
         success: (response)=> {
             const user = $('#main-user-name').text()
@@ -468,8 +474,9 @@ function makeNullReport() {
                 'date': '',
                 'timestamp': '',
                 'link': newId,
+                'isValid': '1'
             }
-            saveNullReport(response)
+            saveNullItem(response)
         }
     })
 }
@@ -486,7 +493,7 @@ $('#return-item-ret-1').on('keyup',()=> {
         calculateNewReturnTotal(returnQuantity,price)
         calculateNewOriginalTotal(originalQuantity,price)
     }else {
-        ipcRenderer.send('showError','Return Item','Invalid count: check returned item count')
+        ipcRenderer.send('showError','Return Item','Invalid: check returned item count')
         $('#return-item-ret-1').val(dbQuantity)
         calculateNewReturnTotal(dbQuantity,price)
     }

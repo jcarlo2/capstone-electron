@@ -3,6 +3,12 @@
     font-family: nunito, serif;
 }
 
+input[type=text], input[type=number], input[type=datetime-local] {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+
 .left-bar, .right-bar {
     height: 85vh;
 }
@@ -19,7 +25,7 @@ td,th {
     text-align: center;
 }
 
-.custom-pointer:hover {
+.custom-pointer:hover, .table-hover:hover{
     cursor: pointer;
 }
 
@@ -37,6 +43,3 @@ td,th {
     color: grey;
 }
 
-.table-hover:hover {
-    cursor: pointer;
-}

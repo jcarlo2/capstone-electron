@@ -3,6 +3,11 @@
   font-family: nunito, serif;
 }
 
+input[type=text], input[type=number] {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 body {
   background: #1a1e23;
   margin: 0;

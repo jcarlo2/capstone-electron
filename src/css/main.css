@@ -7,11 +7,7 @@ html, body {
     height: 100%;
 }
 
-.color-default {
-    background: #588A40;
+input[type=text], input[type=number] {
+    outline: none !important;
+    box-shadow: none !important;
 }
-
-.color-grey {
-    background: darkgrey;
-}
-

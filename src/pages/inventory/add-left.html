@@ -1,29 +1,30 @@
-<div id="transaction-add" class="h-100 d-flex flex-column justify-content-between">
+<div id="inventory-add" class="h-100 d-flex flex-column justify-content-between">
     <div class="overflow-auto">
         <table class="table table-striped table-hover">
             <thead class="position-sticky top-0 bg-light">
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">Item</th>
-                <th scope="col">Qty</th>
-                <th scope="col">Price</th>
-                <th scope="col"></th>
+            <tr class="d-flex">
+                <th class="col-1" scope="col">#</th>
+                <th class="col-5" scope="col">Item</th>
+                <th class="col-2" scope="col">Qty</th>
+                <th class="col-3" scope="col">Total</th>
+                <th class="col-1" scope="col"></th>
             </tr>
             </thead>
-            <tbody id="transaction-add-left-table">
+            <tbody id="inventory-add-left-table">
+                
             </tbody>
         </table>
     </div>
     <div class="w-100">
-        <h5 id="transaction-add-total">Total: &#8369; 0.00</h5>
-        <p class="h6" id="transaction-add-report">ID: IR0000000000001-A0</p>
+        <h5 id="inventory-add-left-total">Total: &#8369; 0.00</h5>
+        <p class="h6" id="inventory-add-report">ID: IR0000000000001-A0</p>
         <hr>
         <div class="w-100 d-flex justify-content-evenly">
-            <button disabled id="transaction-add-pay" type="button" class="btn btn-primary">
+            <button disabled id="inventory-add-pay" type="button" class="btn btn-primary">
                 <i class="fa-solid fa-floppy-disk"></i>
                 SAVE
             </button>
-            <button id="transaction-add-clear" type="button" class="btn btn-danger">
+            <button id="inventory-add-clear" type="button" class="btn btn-danger">
                 <i class="fa-solid fa-eraser"></i>
                 CLEAR
             </button>

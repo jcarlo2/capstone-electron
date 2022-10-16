@@ -11,13 +11,14 @@ let logInWindow;
 let mainWindow;
 let serverProcess;
 let returnResponse
+let deliveryResponse
+let nullResponse
+let inventoryDelete
 
 const mainMenuTemplate = [
 ]
 
 app.on('ready',()=> {
-    startServer();
-
     logInWindow = new BrowserWindow({
         resizable: false,
         webPreferences: {
@@ -32,13 +33,13 @@ app.on('ready',()=> {
     logInWindow.loadFile('index.html')
     logInWindow.maximize()
     logInWindow.on('closed', ()=> {
-        kill(serverProcess.pid);
+        // kill(serverProcess.pid);
         logInWindow = null
     })
 })
 
 app.on('window-all-closed', () => {
-    kill(serverProcess.pid);
+    // kill(serverProcess.pid);
     app.quit()
 })
 
@@ -49,7 +50,7 @@ function startServer(){
      })
 }
 
-function createWindow(filePath,is_maximized) {
+function createMainWindow(filePath) {
      mainWindow = new BrowserWindow({
         resizable: false,
         webPreferences: {
@@ -62,26 +63,23 @@ function createWindow(filePath,is_maximized) {
     mainWindow.loadFile(filePath)
 
     mainWindow.on('closed',()=> {
-        kill(serverProcess.pid);
+        // kill(serverProcess.pid);
         app.quit()
         mainWindow = null
     })
 
-    if(is_maximized) mainWindow.maximize()
-    return mainWindow
+    mainWindow.maximize()
 }
 
 ipcMain.on('login:verify',(e,is_verified,id)=> {
-    if(is_verified) {
-        const window = createWindow('main.html',true)
-        window.webContents.openDevTools()
-        window.webContents.once('did-finish-load',()=> {
-            window.webContents.send('login:verify',id)
-            mainWindow.webContents.send('returnResponse', returnResponse)
+    if(is_verified && mainWindow === undefined) {
+        createMainWindow('main.html')
+        mainWindow.webContents.openDevTools()
+        mainWindow.webContents.once('did-finish-load',()=> {
+            mainWindow.webContents.send('login:verify',id)
         })
         logInWindow.hide()
     }
-
 })
 
 ipcMain.on('showError',(e,title,message)=> {
@@ -102,5 +100,47 @@ ipcMain.on('return',(e,id)=> {
         type: 'none',
         noLink: true,
         defaultId: 2,
-        buttons:['Delete','Delete All','Cancel']})
+        buttons:['Delete','Delete All','Cancel']
+    })
+    mainWindow.webContents.send('returnResponse', returnResponse)
 })
+
+ipcMain.on('delivery',(e,id)=> {
+    deliveryResponse = dialog.showMessageBoxSync(mainWindow,{
+        title: 'Delivery Report',
+        message: 'Save report: ' + id,
+        type: 'none',
+        noLink: true,
+        defaultId: 1,
+        buttons:['Save','Cancel']
+    })
+    mainWindow.webContents.send('deliveryResponse', deliveryResponse)
+})
+
+ipcMain.on('nullReport',(e,id)=> {
+    nullResponse = dialog.showMessageBoxSync(mainWindow,{
+        title: 'Null Report',
+        message: 'Save report: ' + id,
+        type: 'none',
+        noLink: true,
+        defaultId: 1,
+        buttons:['Save','Cancel']
+    })
+    mainWindow.webContents.send('nullResponse', nullResponse)
+})
+
+ipcMain.on('inventoryDelete',(e,id,link,flag)=> {
+    let str = 'Archive report: '
+    if(flag) str = 'Warning: report is link to ' + link + '\nArchive report : '
+    inventoryDelete = dialog.showMessageBoxSync(mainWindow,{
+        title: 'Archive',
+        message: str + id,
+        type: 'none',
+        noLink: true,
+        defaultId: 1,
+        buttons:['Archive','Cancel']
+    })
+    mainWindow.webContents.send('inventoryDeleteResponse', inventoryDelete)
+})
+
+

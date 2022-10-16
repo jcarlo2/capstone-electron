@@ -1,7 +1,18 @@
 <div class="position-sticky top-0 bg-light rounded">
     <h2>Products</h2>
-    <label>
-        <input id="transaction-add-search" type="text" class="form-control-sm" placeholder="Search by id, name or price">
+    <label class="d-flex justify-content-between">
+        <input id="transaction-add-search" spellcheck="false" type="text" class="form-control-sm" placeholder="Search by id, name or price">
+        <div class="dropdown">
+            <button id="transaction-add-filter" class="btn dropdown-toggle border border-dark rounded" type="button" data-bs-toggle="dropdown" aria-expanded="false">Filter By Id</button>
+            <ul class="dropdown-menu">
+                <li id="transaction-add-filter-1"><a class="dropdown-item" href="#">Id</a></li>
+                <li id="transaction-add-filter-2"><a class="dropdown-item" href="#">Name</a></li>
+                <li id="transaction-add-filter-3"><a class="dropdown-item" href="#">Stock L-H</a></li>
+                <li id="transaction-add-filter-4"><a class="dropdown-item" href="#">Stock H-L</a></li>
+                <li id="transaction-add-filter-5"><a class="dropdown-item" href="#">Price L-H</a></li>
+                <li id="transaction-add-filter-6"><a class="dropdown-item" href="#">Price H-L</a></li>
+            </ul>
+        </div>
     </label>
 </div>
 

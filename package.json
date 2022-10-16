@@ -11,12 +11,16 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.2.0",
     "bootstrap": "^5.2.1",
+    "bootstrap-icons": "^1.9.1",
     "electron": "^20.1.4",
     "jquery": "^3.6.1",
     "logger": "^0.0.1",
     "node-sass": "^7.0.3"
-  },"build": {
-      "extraFiles":["capstone-backend.jar"]
+  },
+  "build": {
+    "extraFiles": [
+      "capstone-backend.jar"
+    ]
   },
   "devDependencies": {
     "express": "^4.18.1",

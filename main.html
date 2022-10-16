@@ -4,6 +4,7 @@
     <title>Computerized Sales And Inventory</title>
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.css">
     <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.css">
+    <link rel="stylesheet" href="node_modules/bootstrap-icons/font/bootstrap-icons.css">
   </head>
   <body class="min-vh-100 vh-100 p-2 overflow-hidden">
     <div class="container-fluid d-flex justify-content-between">
@@ -18,7 +19,7 @@
         </h1>
       </div>
       <div class="p-2">
-        <button id="main-transaction" type="button" class="btn border-dark">
+        <button id="main-transaction" disabled type="button" class="btn border-dark">
           <i class="fa-solid fa-receipt"></i>
           Transaction
         </button>
@@ -51,37 +52,74 @@
     <main id="main-section" class="d-none"></main >
 
     <!-- transaction add product to left list -->
-    <div class="modal fade" id="view-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="transaction-add-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h3 id="transaction-product-add-modal">Modal title</h3>
+            <h3 id="transaction-add-title">Modal title</h3>
             <div id="transaction-add-hidden"></div>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body d-md-flex flex-column justify-content-center align-items-center">
             <label class="p-0 m-0">
               <div class="d-flex w-100">
-                <input id="transaction-add-modal-quantity" type="number" min="0" class="border border-dark form-control" placeholder="Quantity">
+                <input id="transaction-add-quantity" type="number" min="0" class="border border-danger border-5 form-control" placeholder="Quantity">
                 <div class="m-2">*</div>
-                <input id="transaction-add-modal-price" readonly type="text" class="w-50 text-center form-control-plaintext border rounded border-dark" value="&#8369; 0.00">
+                <input id="transaction-add-price" readonly type="text" class="w-50 text-center form-control-plaintext border rounded border-dark" value="&#8369; 0.00">
               </div>
               <div class="d-flex w-100 mb-2 justify-content-between">
                 <p class="h5 mt-3 me-3">Sum</p>
-                <input id="transaction-add-modal-sum" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" value="&#8369; 0.00">
+                <input id="transaction-add-sum" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" placeholder="&#8369; 0.00">
               </div>
               <div class="d-flex w-100 mb-2 justify-content-between">
                 <p class="h5 mt-3 me-3">Discount</p>
-                <input id="transaction-add-modal-discount" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" value="0%">
+                <input id="transaction-add-discount" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" placeholder="0 %">
               </div>
               <div class="d-flex w-100 mb-2 justify-content-between">
                 <p class="h5 mt-3 me-3">Total</p>
-                <input id="transaction-add-modal-total" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" value="&#8369; 0.00">
+                <input id="transaction-add-total" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" placeholder="&#8369; 0.00">
               </div>
             </label>
           </div>
           <div class="modal-footer">
-            <button id="transaction-add-btn-modal" type="button" class="btn btn-success" data-bs-dismiss="modal">Add Product</button>
+            <button id="transaction-add-btn" disabled type="button" class="btn btn-success" data-bs-dismiss="modal">Add Product</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- transaction left list edit -->
+    <div class="modal fade" id="transaction-left-list-edit" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 id="transaction-left-edit-title">Modal title</h3>
+            <div id="transaction-left-edit-hidden"></div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body d-md-flex flex-column justify-content-center align-items-center">
+            <label>
+              <div class="d-flex w-100">
+                <input id="transaction-left-edit-quantity" type="number" min="0" class="border border-success border-5 form-control" value="0">
+                <div class="m-2">*</div>
+                <input id="transaction-left-edit-price" readonly type="text" class="w-50 text-center form-control-plaintext border rounded border-dark" value="&#8369; 0.00">
+              </div>
+              <div class="d-flex w-100 mb-2 justify-content-between">
+                <p class="h5 mt-3 me-3">Sum</p>
+                <input id="transaction-left-edit-sum" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" value="&#8369; 0.00">
+              </div>
+              <div class="d-flex w-100 mb-2 justify-content-between">
+                <p class="h5 mt-3 me-3">Discount</p>
+                <input id="transaction-left-edit-discount" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" value="0%">
+              </div>
+              <div class="d-flex w-100 mb-2 justify-content-between">
+                <p class="h5 mt-3 me-3">Total</p>
+                <input id="transaction-left-edit-total" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" value="&#8369; 0.00">
+              </div>
+            </label>
+          </div>
+          <div class="modal-footer">
+            <button id="transaction-left-edit-button" type="button" class="btn btn-success" data-bs-dismiss="modal">Confirm</button>
           </div>
         </div>
       </div>
@@ -121,7 +159,6 @@
                 <tbody id="add-pay-modal-body">
                 </tbody>
             </table>
-
           </div>
           <div class="modal-footer d-flex flex-column">
             <div class="fw-bold d-flex justify-content-end w-100 mt-0">
@@ -129,7 +166,6 @@
             </div>
             <div class="d-flex">
               <button id="transaction-add-modal-confirm" type="button" disabled class="btn btn-success" data-bs-dismiss="modal">CONFIRM</button>
-              <button id="transaction-add-cancel-now" type="button" class="btn btn-danger ms-3" data-bs-dismiss="modal">CANCEL</button>
             </div>
           </div>
         </div>
@@ -180,43 +216,6 @@
               <button id="transaction-return-modal-confirm" type="button" disabled class="btn btn-success" data-bs-dismiss="modal">CONFIRM</button>
               <button id="transaction-return-modal-cancel" type="button" class="ms-3 btn btn-danger" data-bs-dismiss="modal">CANCEL</button>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- transaction left list edit -->
-    <div class="modal fade" id="transaction-left-list-edit" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3 id="transaction-left-edit-title">Modal title</h3>
-            <div id="transaction-left-edit-hidden" class="d-none"></div>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body d-md-flex flex-column justify-content-center align-items-center">
-            <label>
-              <div class="d-flex w-100">
-                <input id="transaction-left-edit-quantity" type="number" min="0" class="border border-dark form-control" value="0">
-                <div class="m-2">*</div>
-                <input id="transaction-left-edit-price" readonly type="text" class="w-50 text-center form-control-plaintext border rounded border-dark" value="&#8369; 0.00">
-              </div>
-              <div class="d-flex w-100 mb-2 justify-content-between">
-                <p class="h5 mt-3 me-3">Sum</p>
-                <input id="transaction-left-edit-sum" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" value="&#8369; 0.00">
-              </div>
-              <div class="d-flex w-100 mb-2 justify-content-between">
-                <p class="h5 mt-3 me-3">Discount</p>
-                <input id="transaction-left-edit-discount" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" value="0%">
-              </div>
-              <div class="d-flex w-100 mb-2 justify-content-between">
-                <p class="h5 mt-3 me-3">Total</p>
-                <input id="transaction-left-edit-total" readonly type="text" class="w-75 mt-2 text-center form-control-plaintext border rounded border-dark" value="&#8369; 0.00">
-              </div>
-            </label>
-          </div>
-          <div class="modal-footer">
-            <button id="transaction-left-edit-button" type="button" class="btn btn-success" data-bs-dismiss="modal">Confirm</button>
           </div>
         </div>
       </div>
@@ -279,6 +278,75 @@
           </div>
           <div class="modal-footer">
             <button id="transaction-return-modal-update" type="button" class="btn btn-success" data-bs-dismiss="modal">Update</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- inventory add product -->
+    <div class="modal fade" id="inventory-add-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 id="inventory-add-title">Modal title</h3>
+            <div id="inventory-add-hidden"></div>
+          </div>
+          <div class="modal-body d-md-flex flex-column justify-content-center align-items-center">
+            <label class="p-0 m-0 d-flex flex-column">
+              <div class="d-flex mb-2">
+                <input id="inventory-add-id" type="text" readonly placeholder="id" class="form-control-sm me-2 text-center">
+                <input id="inventory-add-quantity" type="number" min="0" placeholder="Quantity" class="border border-danger border-5 form-control-sm">
+              </div>
+              <div class="d-flex justify-content-between">
+                <h5>Cost</h5>
+                <input id="inventory-add-cost" type="number" min="0" placeholder="0.00" class="border border-danger border-5 form-control-sm mb-2 w-50">
+              </div>
+              <div class="d-flex justify-content-between">
+                <h5>Discount %</h5>
+                <input id="inventory-add-discount" type="number" min="0" placeholder="0 %" class="form-control-sm mb-2 w-50">
+              </div>
+              <div class="d-flex justify-content-between">
+                <h5>Total</h5>
+                <input class="form-control-sm mb-2 w-50" id="inventory-add-total" placeholder="total" readonly type="text" value="&#8369; 0.00">
+              </div>
+            </label>
+          </div>
+          <div class="modal-footer">
+            <button id="inventory-add-btn-modal" disabled type="button" class="btn btn-success" data-bs-dismiss="modal">Add Product</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- inventory null product -->
+    <div class="modal fade" id="inventory-null-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="d-flex flex-column align-content-start">
+              <h3 id="inventory-null-title">Modal title</h3>
+              <h5 id="inventory-null-capital">Capital</h5>
+            </div>
+            <div id="inventory-null-hidden"></div>
+          </div>
+          <div class="modal-body d-md-flex flex-column justify-content-center align-items-center">
+            <label class="p-0 m-0 d-flex flex-column">
+              <div class="d-flex mb-2">
+                <input id="inventory-null-id" type="text" readonly placeholder="id" class="form-control-sm me-2 text-center">
+                <input id="inventory-null-quantity" type="number" min="0" placeholder="Quantity" class="border border-danger border-5 form-control-sm">
+              </div>
+              <div class="d-flex justify-content-between">
+                <h5>Price</h5>
+                <input id="inventory-null-price" type="text" readonly min="0" placeholder="&#8369; 0.00" class="form-control-sm mb-2 w-50">
+              </div>
+              <div class="d-flex justify-content-between">
+                <h5>Total</h5>
+                <input class="form-control-sm mb-2 w-50" id="inventory-null-total" placeholder="&#8369; 0.00" readonly type="text">
+              </div>
+            </label>
+          </div>
+          <div class="modal-footer">
+            <button id="inventory-null-btn-modal" disabled type="button" class="btn btn-success" data-bs-dismiss="modal">Add Null Product</button>
           </div>
         </div>
       </div>
