@@ -1,13 +1,59 @@
 * {
     box-sizing: border-box;
     font-family: nunito, serif;
+    user-select: none;
+}
+
+.a-line {
+    text-decoration: none;
+}
+
+.a-line:hover {
+    color: yellowgreen;
 }
 
 html, body {
     height: 100%;
 }
 
-input[type=text], input[type=number] {
+.left-bar, .right-bar {
+    height: 85vh;
+}
+
+td,th {
+    text-align: center;
+}
+
+.custom-pointer:hover, .table-hover:hover{
+    cursor: pointer;
+}
+
+.btn-toggle {
+    width: 200px;
+    background: #1009d4;
+}
+
+input[type=text], input[type=number], input[type=datetime-local] {
     outline: none !important;
     box-shadow: none !important;
+}
+
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgb(50, 50, 50);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color:#fff;
+    -webkit-box-shadow: inset 0 0 6px rgb(103, 97, 196);
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }

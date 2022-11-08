@@ -1,12 +1,15 @@
+import {ip, ipcRenderer, json_var, t_add_dropdown, t_add_populate, t_add_report_id,} from "../../../variable.js";
 import {
-    ip,
-    ipcRenderer,
-    json_var,
-    t_add_clear,
-    t_add_report_id,
-    t_add_populate, t_add_dropdown,
-} from "../../../variable.js";
-import {divide, getDate, multiply, setRowColor, subtract} from "../../../function.js";
+    add,
+    ajaxSearchGet,
+    ajaxPostStringify,
+    divide,
+    getDate,
+    multiply,
+    setRowColor,
+    subtract
+} from "../../../function.js";
+import {invalidateReport} from "./return.js";
 
 export function startTransactionAdd(){
     startSearch()
@@ -15,15 +18,22 @@ export function startTransactionAdd(){
     setEditProductQuantityBorder(-1)
     setAddProductQuantityBorder(-1)
     setDropDown()
+    setPaymentConfirm()
+    $('#add-pay-admin').addClass('d-none')
+    $('#add-pay-credit').addClass('d-none')
+    $('#add-pay-credit-plus').addClass('d-none')
+    $('#add-pay-modal').removeClass('modal-lg')
 }
 
 function setTransactionAddClear() {
-    t_add_clear.setIntervalId(setInterval(()=> {
+    const interval = setInterval(()=> {
+        $('#transaction-add-left-clear').text('CLEAR')
+        $('#transaction-add-left-clear').off('click')
         $('#transaction-add-left-clear').on('click',()=> {
             clear()
         })
-        if($('#transaction-add-left-clear').length === 1) clearInterval(t_add_clear.getIntervalId())
-    },500))
+        if($('#transaction-add-left-clear').length === 1) clearInterval(interval)
+    },500)
 }
 
 function setDropDown() {
@@ -73,33 +83,18 @@ function reportIdListener() {
 function startSearch() {
     const interval = setInterval(()=> {
         const search = $('#transaction-add-search').val()
-        if (search === '') findAllProduct()
-        else findProductBySearch(search)
+        const filter = $('#transaction-add-filter').text()
+        if (search === '') searchProduct('/api/product/all-merchandise',filter)
+        else if(search !== undefined) searchProduct('/api/product/search-merchandise',search)
     },1000)
     t_add_populate.setIntervalId(interval)
 }
 
-function findAllProduct() {
-    $.ajax({
-        url: ip.url + '/api/product/all-merchandise',
-        type: 'GET',
-        data: {
-            'filter': $('#transaction-add-filter').text()
-        },
-        success: function (response) {
-            populateProductList(response)
-        }
-    })
-}
-
-function findProductBySearch(search) {
-    $.ajax({
-        url: ip.url + '/api/product/search-merchandise',
-        type: 'GET',
-        data: {'search': search},
-        success:function (response) {
-            populateProductList(response)
-        }
+function searchProduct(url,data) {
+    ajaxSearchGet(
+        url,data
+    ).then((r1)=> {
+        populateProductList(r1)
     })
 }
 
@@ -110,13 +105,13 @@ function populateProductList(data) {
         const id = data[i]['id']
         const price = data[i]['price']
         const name = data[i]['name']
-        let quantity = parseInt(data[i]['quantityPerPieces'])
+        const quantity = parseInt(data[i]['quantityPerPieces'])
         const row = `<tr id="transaction-add-table-`+ id +`" class="transaction-add-item d-flex">
                         <th class="col-1" scope="row">`+ (i+1) +`</th>
-                        <td class="col-2">`+ id +`</td>
-                        <td class="col-5">`+ name +`</td>
-                        <td class="col-2">&#8369; `+ price +`</td>
-                        <td class="col-2">`+ quantity +`</td>
+                        <td class="col-2 text-start">`+ id +`</td>
+                        <td class="col-5 text-start">`+ name +`</td>
+                        <td class="col-2 text-start">&#8369; `+ price +`</td>
+                        <td class="col-2 text-start">`+ quantity +`</td>
                     </tr>`
         list.append(row)
         setClick(data[i],$('#transaction-add-table-'+id))
@@ -196,19 +191,21 @@ $('#transaction-add-btn').on('click',()=> {
 function addProductToLeftList() {
     const table = json_var.t_add_report_item
     const hidden = $('#transaction-add-hidden').prop('class').split(' ')
-    let flag = true
-    for(let i=0;i<table.length;i++) {
-        if(table[i]['productId'] === hidden[0]) {
-            flag = false
-            break
-        }
+    if(!checkDuplicateProduct(table,hidden[0])) ipcRenderer.send('showError','Add product', 'Invalid: duplicate product')
+    else {
+        addDataToTable(table,hidden)
+        populateLeftList(table)
+        calculateTotalAmount()
     }
-    if(flag) addDataToTable(table,hidden)
-    else ipcRenderer.send('showError','Add product', 'Error: duplicate product')
-    populateLeftList()
-    calculateTotalAmount()
     setAddProductQuantityBorder(-1)
     $('#transaction-add-left-pay').prop('disabled',false)
+}
+
+function checkDuplicateProduct(table,product) {
+    for(let i=0;i<table.length;i++) {
+        if(table[i]['productId'] === product) return false
+    }
+    return true
 }
 
 function addDataToTable(table,hidden) {
@@ -222,33 +219,44 @@ function addDataToTable(table,hidden) {
         'discountPercentage': $('#transaction-add-discount').val().split(' ')[0],
         'totalAmount': $('#transaction-add-total').val().substring(2).replace(',',''),
         'capital': hidden[1],
-        'uniqueId': $('#transaction-left-add-report').text().substring(4),
+        'uniqueId': $('#transaction-left-add-report').text().substring(4)
     }
 }
 
-function populateLeftList() {
-    const table = json_var.t_add_report_item
+function populateLeftList(table) {
     $('#transaction-add-left-table').empty()
     for(let i=0;i<table.length;i++) {
         const row = `<tr class="d-flex" id="transaction-left-row-`+ i +`"> 
                         <td class="col-1">`+ (i+1) +`</td>
-                        <td class="col-5">`+ table[i]['name'] +`</td>
-                        <td class="col-2">`+ table[i]['sold'] +`</td>
-                        <td class="col-3">&#8369; `+ parseFloat(table[i]['totalAmount']).toLocaleString() +`</td>
-                        <td class="col-1" id="transaction-left-remove-`+ i +`"><i class="fa-solid fa-rectangle-xmark text-danger"></i></td>
+                        <td class="col-5 text-start">`+ table[i]['name'] +`</td>
+                        <td class="col-2 text-start">`+ table[i]['sold'] +`</td>
+                        <td class="col-3 text-start">&#8369; `+ parseFloat(table[i]['totalAmount']).toLocaleString() +`</td>
+                        <td class="col-1 text-start" id="transaction-left-remove-`+ i +`"><i class="fa-solid fa-rectangle-xmark text-danger"></i></td>
                     </tr>`
         $('#transaction-add-left-table').append(row)
         setRemoveButton($('#transaction-left-remove-'+i),i)
         setDoubleClick($('#transaction-left-row-'+i),table[i])
+    }
+    changeReturnItemRowBackground(json_var.t_ret_table)
+}
+
+function changeReturnItemRowBackground(table) {
+    for(let i=0;i<table.length;i++) {
+        $('#transaction-left-row-'+i).addClass('bg-info')
+        $('#transaction-left-row-'+i).addClass('bg-opacity-25')
+        $('#transaction-left-row-'+i).off('dblclick')
+        $('#transaction-left-remove-'+i).text('')
+        $('#transaction-left-remove-'+i).off('click')
     }
 }
 
 function setRemoveButton(button,i) {
     button.on('click',()=> {
         const table = json_var.t_add_report_item
+        const returnTable = json_var.t_add_return_item
         table.splice(i,1)
-        if(table.length === 0) $('#transaction-add-left-pay').prop('disabled',true)
-        populateLeftList()
+        if(table.length <= returnTable.length) $('#transaction-add-left-pay').prop('disabled',true)
+        populateLeftList(table)
         calculateTotalAmount()
     })
 }
@@ -339,7 +347,7 @@ function addEditProductToLeftList() {
             break
         }
     }
-    populateLeftList()
+    populateLeftList(table)
 }
 
 function calculateTotalAmount() {
@@ -388,6 +396,7 @@ $('#add-pay-modal').on('show.bs.modal',()=> {
     $('#add-pay-modal-id').text('Ref No: ' + id)
     $('#add-pay-modal-user').text('Cashier: ' + user)
     $('#add-pay-modal-date').text('Date: ' + getDate())
+    paymentListener()
     populateAddPayList()
 })
 
@@ -405,13 +414,24 @@ function populateAddPayList() {
 }
 
 $('#add-pay-payment').on('keyup',()=> {
-    const payment = $('#add-pay-payment').val()
+    paymentListener()
+})
+
+function paymentListener() {
+    let payment = $('#add-pay-payment').val()
+    let credit = $('#add-pay-credit').val().substring(2)
     const total = $('#add-pay-total').val().substring(2).replace(',','')
+    if(payment === '' && credit === '') {
+        $('#add-pay-change').val('')
+        return
+    }
+    payment = payment === '' ? 0 : payment
+    credit = credit === '' ? 0 : credit
+    payment = add(payment,credit)
     const change = subtract(payment,total).toLocaleString()
     paymentChangeBolder(change)
-    if(payment === '') $('#add-pay-change').val('')
-    else $('#add-pay-change').val('\u20B1 ' + change)
-})
+    $('#add-pay-change').val('\u20B1 ' + change)
+}
 
 function paymentChangeBolder(change) {
     if(parseFloat(change) >= 0) {
@@ -425,12 +445,15 @@ function paymentChangeBolder(change) {
     }
 }
 
-$('#transaction-add-modal-confirm').on('click',()=> {
-    makeReport()
-    saveReportItem()
-})
+function setPaymentConfirm() {
+    $('#transaction-add-modal-confirm').off('click')
+    $('#transaction-add-modal-confirm').on('click',()=> {
+        makeReport(0)
+        saveReportItem(false,undefined,undefined,undefined,undefined)
+    })
+}
 
-function makeReport() {
+function makeReport(credit) {
     json_var.t_add_report[0] = {
         'id': $('#transaction-left-add-report').text().substring(4),
         'user': $('#main-user-name').text(),
@@ -439,36 +462,38 @@ function makeReport() {
         'isValid': '1',
         'totalAmount': $('#transaction-add-left-total').text().substring(9).replace(',',''),
         'oldId': '',
-        'credit': '0',
+        'credit': credit,
     }
 }
 
-function saveReport() {
-    $.ajax({
-        url: ip.url + '/api/transaction/save-report',
-        type: 'POST',
-        contentType: 'application/json',
-        dataType: 'json',
-        data: JSON.stringify(json_var.t_add_report[0])
+function saveReportItem(isReturn,n_item,n_report,d_item,d_report) {
+    $.when(
+        ajaxPostStringify('/api/transaction/save-report-item', json_var.t_add_report_item),
+        ajaxPostStringify('/api/transaction/save-report',json_var.t_add_report[0])
+    ).then((r1)=> {
+        if(r1[0]) {
+            const id = $('#transaction-left-add-report').text().substring(4)
+            if(isReturn) saveReturnTransaction(n_item,n_report,d_item,d_report)
+            ipcRenderer.send('showMessage', 'Transaction saved', id + ' is saved successfully')
+            clear()
+        }
     })
 }
 
-function saveReportItem() {
-    $.ajax({
-        url: ip.url + '/api/transaction/save-report-item',
-        type: 'POST',
-        contentType: 'application/json',
-        dataType: 'json',
-        data: JSON.stringify(json_var.t_add_report_item),
-        success: (response)=> {
-            if(response) {
-                saveReport()
-                const id = $('#transaction-left-add-report').text().substring(4)
-                ipcRenderer.send('showMessage', 'Transaction saved', id + ' is saved successfully')
-                clear()
-            }
-        }
-    })
+function saveReturnTransaction(n_item,n_report,d_item,d_report) {
+    if(n_item.length > 0) {
+        $.when(
+            ajaxPostStringify('/api/inventory/save-report-null',n_report),
+            ajaxPostStringify('/api/inventory/save-return-report-item',n_item)
+        )
+    }
+    if(d_item.length > 0) {
+        $.when(
+            ajaxPostStringify('/api/inventory/save-delivery-report',d_report),
+            ajaxPostStringify('/api/inventory/save-delivery-report-item',d_item)
+        )
+    }
+    $('#btn-transaction-return').click()
 }
 
 function generateId() {
@@ -488,3 +513,82 @@ function clear() {
     json_var.t_add_report = []
 }
 
+/** Transaction return : payment continue */
+export function returnChangeItem(t_item,t_report,n_item,n_report,d_item,d_report,credit,oldId) {
+    $('#main-transaction').click()
+    const interval = setInterval(()=> {
+        if($('#transaction-left-add-report').length === 1) {
+            assignTableValue(t_item,n_item)
+            populateLeftList(json_var.t_add_report_item)
+            clearInterval(t_add_report_id.getIntervalId())
+            setFieldFromReturn(t_report['id'],t_report['totalAmount'],credit)
+            setTabButtons(true)
+            setClearButton()
+            clearInterval(interval)
+            setSaveReportButton(n_item,n_report,d_item,d_report,oldId,credit)
+        }
+    },1000)
+}
+
+function assignTableValue(t_item,n_item) {
+    const table = json_var.t_add_return_item = Object.assign([], t_item)
+    json_var.t_add_report_item = Object.assign([], t_item)
+    json_var.t_ret_table_null = Object.assign([], n_item)
+    table.sort((a,b)=> {
+        return parseFloat(a.price) - parseFloat(b.price)
+    })
+}
+
+function setSaveReportButton(n_item,n_report,d_item,d_report,oldId,credit) {
+    $('#transaction-add-modal-confirm').off('click')
+    $('#transaction-add-modal-confirm').on('click',()=> {
+        let total = subtract(credit,$('#add-pay-total').val().substring(2))
+        total = total > 0 ? total : 0
+        makeReport(total)
+        filterNullItems(n_item)
+        saveReportItem(true,n_item,n_report,d_item,d_report)
+        invalidateReport(oldId)
+        setTabButtons(false)
+    })
+}
+
+function filterNullItems(itemList) {
+    for(let i in itemList) {
+        if(itemList[i]['reason'] !== 'Exp/Dmg' ) itemList.splice(i,1)
+    }
+}
+
+function setFieldFromReturn(id,total,credit) {
+    $('#transaction-add-left-total').text('Total: \u20B1 ' + parseFloat(total).toLocaleString())
+    $('#transaction-left-add-report').text('ID: ' + id)
+    $('#add-pay-credit').val('\u20B1 ' + credit)
+    $('#add-pay-credit').removeClass('d-none')
+    $('#add-pay-credit-plus').removeClass('d-none')
+    $('#add-pay-admin').removeClass('d-none')
+    $('#add-pay-modal').addClass('modal-lg')
+}
+
+function setTabButtons(flag) {
+    $('#main-transaction').prop('disabled',true)
+    $('#main-inventory').prop('disabled',flag)
+    $('#main-generate').prop('disabled',flag)
+    $('#main-log').prop('disabled',flag)
+    $('#btn-transaction-return').prop('disabled',true)
+    $('#btn-transaction-history').prop('disabled',flag)
+    $('#index-setting').prop('disabled',flag)
+}
+
+function setClearButton() {
+    $('#transaction-add-left-clear').text('CANCEL')
+    $('#transaction-add-left-clear').off('click')
+    $('#transaction-add-left-clear').on('click',()=> {
+        ipcRenderer.send('backToTransactionReturn')
+        ipcRenderer.removeAllListeners('backToTransactionReturn')
+        ipcRenderer.on('backToTransactionReturn',(e,num)=> {
+            if(num === 0) {
+                $('#btn-transaction-return').click()
+                setTabButtons(false)
+            }
+        })
+    })
+}

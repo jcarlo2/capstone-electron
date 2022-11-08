@@ -1,4 +1,5 @@
 export const {ipcRenderer} = require('electron')
+
 class IP {
     _url = 'http://localhost:8080'
 
@@ -50,66 +51,66 @@ class IntervalVariable {
 
 /**
  * Used for table renderer and saving entity to database
- *      <NAME>                          <TAB>                   <FUNCTION>
- * t_add_report: *[]                transaction add         : report
- * t_add_report_item : [],          transaction add         : render / report item
- * t_ret_table: *[]                 transaction return      : render / report item
- * t_ret_table_null: *[]            transaction return      : report item
- * t_inventory_report_null: *[]     transaction return      : report
- * i_add_table: *[]                 inventory add           : render / report item
- * i_add_report: *[]                inventory add           : report
- * i_null_report_item: *[]          inventory null          : render / report item
- * i_null_report: *[]               inventory null          : report
+ *      <NAME>                              <TAB>                   <FUNCTION>
+ * t_add_return_item: []                transaction add         : null report item
+ * t_add_report: []                     transaction add         : report transaction add
+ * t_add_report_item : []               transaction add         : render / report item
+ * t_ret_table: []                      transaction return      : render / report item
+ * t_ret_table_null: []                 transaction return      : report item
+ * t_inventory_report_null: []          transaction return      : report inventory null
+ * t_inventory_report_delivery : []     transaction return      : report inventory delivery
+ * t_ret_table_delivery' : []           transaction return      : report item
+ * i_add_table: []                      inventory add           : render / report item
+ * i_add_report: []                     inventory add           : report inventory add
+ * i_null_report_item: []               inventory null          : render / report item
+ * i_null_report: []                    inventory null          : report inventory null
  */
 export const json_var = {
+    't_add_return_item' : [],
     't_add_report' : [],
     't_add_report_item' : [],
     't_ret_table' : [],
     't_ret_table_null' : [],
     't_inventory_report_null' : [],
+    't_inventory_report_delivery' : [],
+    't_ret_table_delivery' : [],
     'i_add_table' : [],
     'i_add_report' : [],
     'i_null_report_item' : [],
     'i_null_report' : [],
 }
 
+export const copy = {
+    't_ret_table_null' : []
+};
+
 // transaction interval
 
 export const t_add_populate = new IntervalVariable()
-export const t_add_clear = new IntervalVariable()
 export const t_add_report_id = new IntervalVariable()
 export const t_add_dropdown = new IntervalVariable()
 export const t_ret_populate = new IntervalVariable()
-export const t_ret_clear = new IntervalVariable()
 export const t_ret_new_total = new IntervalVariable()
 export const t_history_populate = new IntervalVariable()
-export const t_history_delete = new IntervalVariable()
-export const t_history_option = new IntervalVariable()
 
 // inventory interval
 
 export const i_add_populate = new IntervalVariable()
-export const i_add_pay = new IntervalVariable()
-export const i_add_clear = new IntervalVariable()
+export const i_add_input = new IntervalVariable()
 export const i_add_generate_id = new IntervalVariable()
-export const i_add_dropdown = new IntervalVariable()
 export const i_null_populate = new IntervalVariable()
 export const i_null_generate_id = new IntervalVariable()
-export const i_null_clear = new IntervalVariable()
-export const i_null_pay = new IntervalVariable()
-export const i_null_dropdown = new IntervalVariable()
 export const i_history_populate = new IntervalVariable()
-export const i_history_option = new IntervalVariable()
 
 
 class Buttons {
     _transactionAdd
-    _transactionReturn = $('#btn-transaction-return')
-    _transactionHistory = $('#btn-transaction-history')
-    _inventoryAdd = $('#btn-inventory-add')
-    _inventoryNull = $('#btn-inventory-null')
-    _inventoryHistory = $('#btn-inventory-history')
-    _inventoryProduct = $('#btn-inventory-product')
+    _transactionReturn
+    _transactionHistory
+    _inventoryAdd
+    _inventoryNull
+    _inventoryHistory
+    _inventoryProduct
 
     get transactionAdd() {
         return this._transactionAdd;

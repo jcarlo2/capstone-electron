@@ -2,25 +2,24 @@
 <div class="container-fluid d-flex">
   <div class="left-bar w-50 border-dark border rounded container d-flex flex-column p-2">
     <div class="left-receipt-return d-flex justify-content-evenly mb-2">
-      <button type="button" id="btn-inventory-add" class="text-dark btn btn-success">
+      <button type="button" id="btn-inventory-add" disabled class="text-dark btn btn-success">
         <i class="bi bi-file-earmark-plus-fill"></i>
         Add
       </button>
       <button type="button" id="btn-inventory-null" class="btn btn-warning">
         <i class="bi bi-file-earmark-minus-fill"></i>
-        Null
+        Damaged
       </button>
       <button type="button" id="btn-inventory-history" class="btn btn-info">
         <i class="bi bi-file-earmark-ruled-fill"></i>
         History
       </button>
-      <button type="button" id="btn-inventory-product" class="btn btn-info">
+      <button type="button" id="btn-inventory-product" class="text-dark btn btn-primary">
         <i class="bi bi-basket-fill"></i>
         Product
       </button>
     </div>
-
-    <div id="inventory-left" class="h-100"></div>
+    <div id="inventory-left" class="h-100 overflow-auto"></div>
   </div>
   <div id="inventory-right" class="overflow-auto ms-3 border border-dark rounded right-bar container p-2"></div>
 </div>

@@ -1,6 +1,7 @@
 import {ipcRenderer} from "./variable.js";
 
 $().ready(()=> {
+    $('#index-login').off('click')
     $('#index-login').on('click',()=> {
         const username = $('#index-username').val()
         const password = $('#index-password').val()
@@ -18,7 +19,6 @@ $().ready(()=> {
                         console.log(id)
                     })
                 }else ipcRenderer.send('showError','Login','Invalid: username or password')
-
             }
         })
     })

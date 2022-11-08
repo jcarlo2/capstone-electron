@@ -3,24 +3,5 @@
     font-family: nunito, serif;
 }
 
-input[type=text], input[type=number] {
-    outline: none !important;
-    box-shadow: none !important;
-}
 
-.left-bar, .right-bar {
-    height: 85vh;
-}
-
-#transaction-history {
-    height: 90%;
-}
-
-#transaction-left {
-    height: 94%;
-}
-
-.table-hover:hover{
-    cursor: pointer;
-}
 

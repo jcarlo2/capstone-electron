@@ -1,0 +1,57 @@
+<div class="h-100 d-flex flex-column overflow-hidden">
+    <label class="d-flex flex-column align-items-center">
+        <div class="w-100 d-flex justify-content-between mb-2">
+            <p class="pt-2 h6">ID TO UPDATE</p>
+            <input id="inventory-product-update" type="text" class="form-control-sm border border-3 border-primary" placeholder="Id to update" readonly>
+        </div>
+        <div class="w-100 d-flex justify-content-between mb-2">
+            <p class="pt-2 h6">NAME</p>
+            <input id="inventory-product-name" type="text" class="form-control-sm" placeholder="Name">
+        </div>
+        <div class="w-100 d-flex justify-content-between mb-2">
+            <p class="pt-2 h6">PRICE</p>
+            <input id="inventory-product-price" type="number" class="form-control-sm" placeholder="Price">
+        </div>
+        <div class="w-100 d-flex justify-content-between mb-2">
+            <p class="pt-2 h6">CAPITAL</p>
+            <input id="inventory-product-capital" type="number" class="form-control-sm" placeholder="Capital">
+        </div>
+        <hr class="w-100">
+        <div class="d-flex justify-content-between w-100 mb-1">
+            <p class="h5">Discount List</p>
+            <div class="d-flex justify-content-evenly">
+                <button id="product-discount-add" title="Add new discount for product" class="btn btn-success me-2" type="button">
+                    <i class="fa fa-plus text-dark" aria-hidden="true"></i>
+                </button>
+                <button id="product-history-btn"title="View specific product history" class="btn btn-info" type="button">
+                    History
+                </button>
+            </div>
+        </div>
+    </label>
+    <div class="d-flex flex-column justify-content-between overflow-auto h-100">
+        <div class="overflow-auto">
+            <table class="table table-striped table-hover mb-0" id="product-table">
+                <thead class="position-sticky top-0 bg-light" id="product-head">
+                <tr class="d-flex">
+                    <th class="col-1" scope="col">#</th>
+                    <th class="col-6 text-center" scope="col">Quantity</th>
+                    <th class="col-5 text-center" scope="col">Discount %</th>
+                </tr>
+                </thead>
+                <tbody id="inventory-product-discount">
+
+                </tbody>
+            </table>
+        </div>
+        <div class="w-100">
+            <hr class="mt-0">
+            <div class="d-flex justify-content-evenly w-100">
+                <input id="product-left-add" value="Add" title="Add new product" class="btn btn-success" type="button">
+                <input id="product-left-update" value="Update" title="Update an existing product" class="btn btn-primary text-white" type="button">
+                <input id="product-left-archive" value="Archive" title="Archived a product" class="btn btn-danger" type="button">
+                <input id="product-left-clear" value="Clear" title="Clear all fields" class="btn btn-warning" type="button">
+            </div>
+        </div>
+    </div>
+</div>

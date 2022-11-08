@@ -1,13 +1,5 @@
-import {
-    i_add_clear, i_add_dropdown,
-    i_add_generate_id,
-    i_add_pay,
-    i_add_populate,
-    ip,
-    ipcRenderer,
-    json_var,
-} from "../../../variable.js";
-import {divide, multiply, setRowColor, subtract} from "../../../function.js";
+import {i_add_generate_id, i_add_input, i_add_populate, ip, ipcRenderer, json_var,} from "../../../variable.js";
+import {ajaxSearchGet, divide, multiply, setRowColor, subtract} from "../../../function.js";
 
 export function startInventoryAdd() {
     setSearch()
@@ -19,17 +11,18 @@ export function startInventoryAdd() {
 }
 
 function setAddClearButton() {
-    i_add_clear.setIntervalId(setInterval(()=> {
+    const interval = setInterval(()=> {
         $('#inventory-add-clear').on('click',()=> {
             $('#inventory-add-left-table').empty()
+            $('#inventory-add-left-total').text('Total: \u20B1 0.00')
             json_var.i_add_table = []
         })
-        if($('#inventory-add-clear').length === 1) clearInterval(i_add_clear.getIntervalId())
-    },1000))
+        if($('#inventory-add-clear').length === 1) clearInterval(interval)
+    },1000)
 }
 
 function setDropDown() {
-    i_add_dropdown.setIntervalId(setInterval(()=> {
+    const interval = setInterval(()=> {
         const button = $('#inventory-add-filter')
 
         $('#inventory-add-filter-1').on('click',()=> {
@@ -54,8 +47,8 @@ function setDropDown() {
         $('#inventory-add-filter-6').on('click',()=> {
             button.text('Filter By Price H-L')
         })
-        if($('#inventory-add-filter').length === 1) clearInterval(i_add_dropdown.getIntervalId())
-    }))
+        if($('#inventory-add-filter').length === 1) clearInterval(interval)
+    })
 }
 
 function autogenerateId() {
@@ -75,7 +68,7 @@ function autogenerateId() {
 }
 
 function setInventoryAddSave() {
-    i_add_pay.setIntervalId(setInterval(()=> {
+    const interval = setInterval(()=> {
         $('#inventory-add-pay').off('click')
         $('#inventory-add-pay').on('click',()=> {
             ipcRenderer.send('delivery',$('#inventory-add-report').text().substring(4))
@@ -84,8 +77,8 @@ function setInventoryAddSave() {
                 if(num === 0) makeReport()
             })
         })
-        if($('#inventory-add-pay').length === 1) clearInterval(i_add_pay.getIntervalId())
-    },1000))
+        if($('#inventory-add-pay').length === 1) clearInterval(interval)
+    },1000)
 }
 
 function checkDisabledSaveButton() {
@@ -97,13 +90,21 @@ function checkDisabledSaveButton() {
 function setSearch() {
     const interval = setInterval(()=> {
         const search = $('#inventory-add-search').val()
-        if (search === '') findAllProduct()
-        else findProductBySearch(search)
+        const filter = $('#inventory-add-filter').text()
+        if (search === '') {
+            ajaxSearchGet('/api/product/all-merchandise',filter)
+                .then((response)=> populateProductList(response))
+        } else if(search !== undefined) {
+            ajaxSearchGet('/api/product/search-merchandise',search)
+                .then((response)=>populateProductList(response))
+        }
+
     },1000)
     i_add_populate.setIntervalId(interval)
 }
+
 function setAddModalInput() {
-    setInterval(()=> {
+    i_add_input.setIntervalId(setInterval(()=> {
         let quantity = $('#inventory-add-quantity').val()
         let cost = $('#inventory-add-cost').val()
         quantity = parseFloat(quantity)
@@ -111,7 +112,7 @@ function setAddModalInput() {
 
         checkInventoryModalButton(quantity,cost)
         checkInventoryModalInputBorder(quantity,cost)
-    },500)
+    },500))
 }
 
 function checkInventoryModalInputBorder(quantity,cost) {
@@ -140,33 +141,8 @@ function checkInventoryModalButton(quantity,cost) {
     }else $('#inventory-add-btn-modal').prop('disabled', true)
 }
 
-function findAllProduct() {
-    $.ajax({
-        url: ip.url + '/api/product/all-merchandise',
-        type: 'GET',
-        data: {
-            'filter': $('#inventory-add-filter').text()
-        },
-        success: function (response) {
-            $('#inventory-add-product').empty()
-            populateProductList(response)
-        },
-    })
-}
-
-function findProductBySearch(search) {
-    $.ajax({
-        url: ip.url + '/api/product/search-merchandise',
-        type: 'GET',
-        data: {'search': search},
-        success:function (response) {
-            $('#inventory-add-product').empty()
-            populateProductList(response)
-        },
-    })
-}
-
 function populateProductList(data) {
+    $('#inventory-add-product').empty()
     for(let i=0;i<data.length;i++) {
         const id = data[i]['id']
         const name = data[i]['name']
@@ -174,9 +150,9 @@ function populateProductList(data) {
 
         const row = `<tr id="inventory-product-`+ id +`" class="d-flex">
                         <th class="col-1" scope="row">`+ (i+1) +`</th>
-                        <td class="col-3">`+ id +`</td>
-                        <td class="col-5">`+ name +`</td>
-                        <td class="col-3">`+ stock +`</td>
+                        <td class="col-3 text-start">`+ id +`</td>
+                        <td class="col-5 text-start">`+ name +`</td>
+                        <td class="col-3 text-start">`+ stock +`</td>
                     </tr>`
         $('#inventory-add-product').append(row)
         setRowColor($('#inventory-product-'+id),stock)
@@ -188,6 +164,7 @@ function setClick(data,row) {
     row.on('click',()=> {
         $('#inventory-add-title').text(data['name'])
         $('#inventory-add-id').val(data['id'])
+        $('#inventory-add-hidden').text(data['capital'])
         $('#inventory-add-modal').modal('show')
     })
 }
@@ -219,6 +196,7 @@ $('#inventory-add-btn-modal').on('click',()=> {
             break
         }
     }
+    //FIx
     if(flag) addToInventoryTable(table,id)
     else ipcRenderer.send('showError','Add stock', 'Error: duplicate product')
     populateLeftList()
@@ -240,6 +218,7 @@ function addToInventoryTable(table,id) {
         'discountPercentage' : discount === '' ? 0 : discount,
         'totalAmount' : total.substring(2).replace(',',''),
         'uniqueId' : $('#inventory-add-report').text().substring(4),
+        'capital' : $('#inventory-add-hidden').text()
     }
 }
 
@@ -258,10 +237,10 @@ function populateLeftList() {
     for(let i=0;i<table.length;i++) {
         const row = `<tr class="d-flex">
                         <td class="col-1">`+ (i+1) +`</td>
-                        <td class="col-5">`+ table[i]['productId'] +`</td>
-                        <td class="col-2">`+ table[i]['quantity'] +`</td>
-                        <td class="col-3">&#8369; `+ table[i]['totalAmount'].toLocaleString() +`</td>
-                        <td class="col-1" id="inventory-add-list-`+i+`"><i class="custom-pointer fa-solid fa-rectangle-xmark text-danger"></i></td>
+                        <td class="col-5 text-start">`+ table[i]['productId'] +`</td>
+                        <td class="col-2 text-start">`+ table[i]['quantity'] +`</td>
+                        <td class="col-3 text-start">&#8369; `+ table[i]['totalAmount'].toLocaleString() +`</td>
+                        <td class="col-1 text-start" id="inventory-add-list-`+i+`"><i class="custom-pointer fa-solid fa-rectangle-xmark text-danger"></i></td>
                     </tr>`
         $('#inventory-add-left-table').append(row)
         setRemoveButton($('#inventory-add-list-'+i),table,i)
@@ -283,6 +262,7 @@ $('#inventory-add-modal').on('hidden.bs.modal',()=> {
     $('#inventory-add-quantity').val('')
     $('#inventory-add-cost').val('')
     $('#inventory-add-total').val('')
+    $('#inventory-add-hidden').text('')
 })
 
 function generateId() {
@@ -304,7 +284,9 @@ function makeReport() {
         'total' : total,
         'date' : '',
         'timestamp' : '',
-        'isValid' : '1'
+        'isValid' : '1',
+        'reason' : 'Default',
+        'link' : '',
     }
     saveReport(id)
 }

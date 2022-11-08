@@ -1,18 +1,25 @@
-import {i_history_option, i_history_populate, ip, ipcRenderer} from "../../../variable.js";
+import {i_history_populate, ip, ipcRenderer} from "../../../variable.js";
+import {ajaxDefaultArray, ajaxPostNonString, ajaxUrl, multiply} from "../../../function.js";
 
-export function startHistory() {
+export function startInventoryHistory() {
     setOption()
     setArchive()
+    setSearch()
+}
+
+function setSearch() {
     i_history_populate.setIntervalId(setInterval(()=> {
         const option = $('#inventory-history-option').text()
         const search = $('#inventory-history-left-search').val()
         const start = $('#inventory-history-start').val()
         const end = $('#inventory-history-end').val()
-        if(search !== '') getAllReportBySearch(option,search)
-        else if(start !== '' && end === '') getAllReportByStart(option,start)
-        else if(start === '' && end !== '') getAllReportByEnd(option,end)
-        else if(start !== '' && end !== '') getAllReportByDate(option,start,end)
-        else getAllReport(option)
+        let ajax
+        if(search !== '') ajax = getAllReportBySearch(option,search)
+        else if(start !== '' && end === '') ajax = getAllReportByStart(option,start)
+        else if(start === '' && end !== '') ajax = getAllReportByEnd(option,end)
+        else if(start !== '' && end !== '') ajax = getAllReportByDate(option,start,end)
+        else if(search !== undefined) ajax = getAllReport(option)
+        if(ajax !== undefined) ajax.then((response)=> populateLeftList(response))
     },1000))
 }
 
@@ -37,187 +44,94 @@ function setArchive() {
 }
 
 function archiveReport(link,id) {
-    if(id.charAt(0) === 'I') archiveDeliveryReport(id)
-    else if(link === '') archiveNullReport(id)
-    else archiveNullReportWithLink(link,id)
+    if(id.charAt(0) === 'I' && link === undefined) archiveDefault('/api/inventory/archived-delivery',{'id':id})
+    else if(id.charAt(0) === 'N' && link === undefined) archiveDefault('/api/inventory/archived-null-report',{'id':id})
+    else archivePostNonString(link,id)
 }
 
-function archiveDeliveryReport(id) {
-
+// create error when not newest
+function archiveDefault(url, id) {
+    ajaxDefaultArray(url,id)
+        .then(()=> {
+            ipcRenderer.send('showMessage','Report archive', id['id'] + ' is successfully archived')
+            clear()
+        })
 }
 
-function archiveNullReport(id) {
-
+function archivePostNonString(link,id) {
+    ajaxPostNonString('/api/transaction/archive',{'id': link})
+        .then(()=> {
+            ipcRenderer.send('showMessage','Report archive', id + ' is successfully archived')
+            clear()
+        })
 }
 
 function archiveNullReportWithLink(link,id) {
+    $.ajax({
+        url: ip.url + '/api/inventory/archived-null-link',
+        data: {
+            'link': link,
+            'id': id,
+        },
+        success: (response)=> {
+            if(response) {
+                ipcRenderer.send('showMessage','Report archive', id + ' is successfully archived')
+                clear()
+            } else ipcRenderer.send('showError','Report archive', 'Invalid: not the newest report')
+        }
+    })
+}
 
+function clear() {
+    $('#inventory-history-item-body').empty()
+    $('#inventory-history-id').val('')
+    $('#inventory-history-user').val('')
+    $('#inventory-history-date').val('')
+    $('#inventory-history-total').val('')
+    $('#inventory-history-hidden').removeClass()
+    $('#inventory-history-hidden').addClass('d-none')
+    $('#inventory-history-report-info').off('click')
 }
 
 function getAllReport(option) {
-    if(option === 'Null Archived') getAllNullReport('0')
-    else if(option === 'Delivery Report') getAllDeliveryReport('1')
-    else if(option === 'Delivery Archived') getAllDeliveryReport('0')
-    else getAllNullReport('1')
+    const all = '/api/inventory/get-all-null-and-delivery'
+    if(option === 'Null Report') return ajaxUrl('/api/inventory/get-all-null-report')
+    else if(option === 'Null Archived') return ajaxUrl('/api/inventory/get-all-archived-null-report')
+    else if(option === 'Delivery Report') return ajaxUrl('/api/inventory/get-all-delivery-report')
+    else if(option === 'Delivery Archived') return ajaxUrl('/api/inventory/get-all-archived-delivery-report')
+    else return ajaxUrl(all)
 }
 
 function getAllReportBySearch(option,search) {
-    if(option === 'Null Archived') getAllNullReportBySearch('0',search)
-    else if(option === 'Delivery Report') getAllDeliveryReportBySearch('1',search)
-    else if(option === 'Delivery Archived') getAllDeliveryReportBySearch('0',search)
-    else getAllNullReportBySearch('1',search)
+    if(option === 'Null Report') return ajaxDefaultArray('/api/inventory/get-all-null-report-search',{'search':search})
+    else if(option === 'Null Archived') return ajaxDefaultArray('/api/inventory/get-all-archived-null-report-search',{'search':search})
+    else if(option === 'Delivery Report') return ajaxDefaultArray('/api/inventory/get-all-delivery-report-search',{'search':search})
+    else if(option === 'Delivery Archived') return ajaxDefaultArray('/api/inventory/get-all-archived-delivery-report-search',{'search':search})
+    else console.log('SEARCH')
 }
 
 function getAllReportByDate(option,start,end) {
-    if(option === 'Null Archived') getAllNullReportByDate('0',start,end)
-    else if(option === 'Delivery Report') getAllDeliveryReportByDate('1',start,end)
-    else if(option === 'Delivery Archived') getAllDeliveryReportByDate('0',start,end)
-    else getAllNullReportByDate('1',start,end)
+    if(option === 'Null Archived') return ajaxDefaultArray('/api/inventory/get-all--null-report-date',{'start':start,'end':end})
+    else if(option === 'Null Report') return ajaxDefaultArray('/api/inventory/get-all-archived-null-report-date',{'start':start,'end':end})
+    else if(option === 'Delivery Archived') return ajaxDefaultArray('/api/inventory/get-all-delivery-report-date',{'start':start,'end':end})
+    else if(option === 'Delivery Report') return ajaxDefaultArray('/api/inventory/get-all-archived-delivery-report-date',{'start':start,'end':end})
+    else console.log('DATE')
 }
 
 function getAllReportByEnd(option,end) {
-    if(option === 'Null Archived') getAllNullReportByEnd('0',end)
-    else if(option === 'Delivery Report') getAllDeliveryReportByEnd('1',end)
-    else if(option === 'Delivery Archived') getAllDeliveryReportByEnd('0',end)
-    else getAllNullReportByEnd('1',end)
+    if(option === 'Null Report') return ajaxDefaultArray('/api/inventory/get-all-null-report-end',{'end':end})
+    else if(option === 'Null Archived') return ajaxDefaultArray('/api/inventory/get-all-archived-null-report-end',{'end':end})
+    else if(option === 'Delivery Report')  return ajaxDefaultArray('/api/inventory/get-all-delivery-report-end',{'end':end})
+    else if(option === 'Delivery Archived')  return ajaxDefaultArray('/api/inventory/get-all-archived-delivery-report-end',{'end':end})
+    else console.log('END')
 }
 
 function getAllReportByStart(option,start) {
-    if(option === 'Null Archived') getAllNullReportByStart('0',start)
-    else if(option === 'Delivery Report') getAllDeliveryReportByStart('1',start)
-    else if(option === 'Delivery Archived') getAllDeliveryReportByStart('0',start)
-    else getAllNullReportByStart('1',start)
-}
-
-function getAllDeliveryReportBySearch(isValid,search) {
-    $.ajax({
-        url: ip.url + '/api/inventory/get-all-delivery-report-search',
-        data: {
-            'isValid': isValid,
-            'search': search,
-        },
-        success: (response)=> {
-            
-            populateLeftList(response)
-        }
-    })
-}
-
-function getAllNullReportBySearch(isValid,search) {
-    $.ajax({
-        url: ip.url + '/api/inventory/get-all-null-report-search',
-        data: {
-            'isValid': isValid,
-            'search': search,
-        },
-        success: (response)=> {
-            populateLeftList(response)
-        }
-    })
-}
-
-function getAllDeliveryReportByStart(isValid,start) {
-    $.ajax({
-        url: ip.url + '/api/inventory/get-all-delivery-report-start',
-        data: {
-            'isValid': isValid,
-            'start': start,
-        },
-        success: (response)=> {
-            populateLeftList(response)
-        }
-    })
-}
-
-function getAllNullReportByStart(isValid,start) {
-    $.ajax({
-        url: ip.url + '/api/inventory/get-all-null-report-start',
-        data: {
-            'isValid': isValid,
-            'start': start,
-        },
-        success: (response)=> {
-            populateLeftList(response)
-        }
-    })
-}
-
-function getAllDeliveryReportByEnd(isValid,end) {
-    $.ajax({
-        url: ip.url + '/api/inventory/get-all-delivery-report-end',
-        data: {
-            'isValid': isValid,
-            'end': end,
-        },
-        success: (response)=> {
-            populateLeftList(response)
-        }
-    })
-}
-
-function getAllNullReportByEnd(isValid,end) {
-    $.ajax({
-        url: ip.url + '/api/inventory/get-all-null-report-end',
-        data: {
-            'isValid': isValid,
-            'end': end,
-        },
-        success: (response)=> {
-            populateLeftList(response)
-        }
-    })
-}
-
-function getAllNullReportByDate(isValid,start,end) {
-    $.ajax({
-        url: ip.url + '/api/inventory/get-all-null-report-date',
-        data: {
-            'isValid': isValid,
-            'start': start,
-            'end': end,
-        },
-        success: (response)=> {
-            populateLeftList(response)
-        }
-    })
-}
-
-function getAllDeliveryReportByDate(isValid,start,end) {
-    $.ajax({
-        url: ip.url + '/api/inventory/get-all-delivery-report-date',
-        data: {
-            'isValid': isValid,
-            'start': start,
-            'end': end,
-        },
-        success: (response)=> {
-            populateLeftList(response)
-        }
-    })
-}
-
-function getAllNullReport(isValid) {
-    $.ajax({
-        url: ip.url + '/api/inventory/get-all-null-report',
-        data: {
-            'isValid': isValid
-        },
-        success: (response)=> {
-            populateLeftList(response)
-        }
-    })
-}
-
-function getAllDeliveryReport(isValid) {
-    $.ajax({
-        url: ip.url + '/api/inventory/get-all-delivery-report',
-        data: {
-            'isValid': isValid
-        },
-        success: (response)=> {
-            populateLeftList(response)
-        }
-    })
+    if(option === 'Null Report') return ajaxDefaultArray('/api/inventory/get-all-null-report-start',{'start':start})
+    else if(option === 'Null Archived') return ajaxDefaultArray('/api/inventory/get-all-archived-null-report-start',{'start':start})
+    else if(option === 'Delivery Report') return ajaxDefaultArray('/api/inventory/get-all-delivery-report-start',{'start':start})
+    else if(option === 'Delivery Archived') return ajaxDefaultArray('/api/inventory/get-archived-all-delivery-report-start',{'start':start})
+    else console.log('START')
 }
 
 function populateLeftList(data) {
@@ -226,100 +140,165 @@ function populateLeftList(data) {
         const id = data[i]['id']
         const row = `<tr id="inventory-history-`+ id +`" class="d-flex">
                         <th class="col-1">`+ (i+1) +`</th>
-                        <td class="col-7">`+ id +`</td>
-                        <td class="col-4">`+ data[i]['timestamp'] +`</td>
+                        <td class="col-7 text-start">`+ id +`</td>
+                        <td class="col-4 text-start">`+ data[i]['timestamp'] +`</td>
                     </tr>`
         $('#inventory-history-left-body').append(row)
-        setDoubleClick(data[i],$('#inventory-history-'+id))
+        setReportClick(data[i],$('#inventory-history-'+id))
     }
 }
 
 function setOption() {
-    i_history_option.setIntervalId(setInterval(()=> {
+    const interval = setInterval(()=> {
         $('#inventory-history-option-1').off('click')
         $('#inventory-history-option-1').on('click',()=> {
+            clear()
             $('#inventory-history-option').text('Null Report')
-            $('#inventory-history-delete').removeClass('invisible')
+            $('#inventory-history-archive').removeClass('invisible')
         })
 
         $('#inventory-history-option-2').off('click')
         $('#inventory-history-option-2').on('click',()=> {
+            clear()
             $('#inventory-history-option').text('Null Archived')
-            $('#inventory-history-delete').addClass('invisible')
+            $('#inventory-history-archive').addClass('invisible')
         })
 
         $('#inventory-history-option-3').off('click')
         $('#inventory-history-option-3').on('click',()=> {
+            clear()
             $('#inventory-history-option').text('Delivery Report')
-            $('#inventory-history-delete').addClass('invisible')
+            $('#inventory-history-archive').removeClass('invisible')
         })
 
         $('#inventory-history-option-4').off('click')
         $('#inventory-history-option-4').on('click',()=> {
+            clear()
             $('#inventory-history-option').text('Delivery Archived')
-            $('#inventory-history-delete').addClass('invisible')
+            $('#inventory-history-archive').addClass('invisible')
+        })
+
+        $('#inventory-history-option-5').off('click')
+        $('#inventory-history-option-5').on('click',()=> {
+            clear()
+            $('#inventory-history-option').text('All')
+            $('#inventory-history-archive').addClass('invisible')
         })
 
         if($('#inventory-history-option-1').length === 1
             && $('#inventory-history-option-2').length === 1
             && $('#inventory-history-option-3').length === 1
-            && $('#inventory-history-option-4').length === 1) {
-            clearInterval(i_history_option.getIntervalId())
+            && $('#inventory-history-option-4').length === 1
+            && $('#inventory-history-option-5').length === 1) {
+            clearInterval(interval)
         }
-    }))
+    })
 }
 
-function setDoubleClick(data,row) {
-    row.on('dblclick',()=> {
+function setReportClick(data,row) {
+    row.on('click',()=> {
+        const total = parseFloat(data['total']).toLocaleString();
         $('#inventory-history-hidden').removeClass()
         $('#inventory-history-hidden').addClass('d-none')
         $('#inventory-history-user').val(data['user'])
         $('#inventory-history-id').val(data['id'])
         $('#inventory-history-date').val(data['timestamp'])
-        $('#inventory-history-total').val('\u20B1 ' + parseFloat(data['total']).toLocaleString())
+        $('#inventory-history-total').val('\u20B1 ' + total)
+        setReportInfo(data,total)
         if(data['link'] !== undefined || data['link'] !== '') {
             $('#inventory-history-hidden').addClass(data['link'])
         }
-        if(data['id'].charAt(0) === 'I') getDeliveryItems(data)
-        else getNullItems(data)
+        getItems(data)
     })
 }
 
-function getNullItems(data) {
-    $.ajax({
-        url: ip.url + '/api/inventory/get-all-null-item',
-        data: {
-            'id': data['id']
-        },
-        success: (response)=> {
-            populateTable(response)
-        }
+function getItems(data) {
+    let ajax
+    if(data['id'].charAt(0) === 'I') ajax = ajaxDefaultArray('/api/inventory/get-all-delivery-item',{'id': data['id'],'timestamp': data['timestamp']})
+    else ajax =  ajaxDefaultArray('/api/inventory/get-all-null-item',{'id': data['id'],'timestamp': data['timestamp']})
+    if(ajax !== undefined) ajax.then((response)=> populateTable(response,data['id']))
+}
+
+function setReportInfo(data,total) {
+    $('#inventory-history-report-info').off('click')
+    $('#inventory-history-report-info').on('click',()=> {
+        ajaxDefaultArray('/api/inventory/check-if-id-is-archived',{'id':data['id'],'timestamp':data['timestamp']})
+            .then((response)=> {
+                $('#inventory-history-report-id').text( data['id'])
+                $('#inventory-history-report-user').val(data['user'])
+                $('#inventory-history-report-date').val(data['timestamp'])
+                $('#inventory-history-report-total').val('\u20B1 ' + total)
+                $('#inventory-history-report-reason').val(data['reason'])
+                $('#inventory-history-report-link').val(data['link'] === '' ? 'None' : data['link'])
+                $('#inventory-history-report-archived').val(response === false ? 'No' : 'Yes')
+                $('#inventory-history-report').modal('show')
+            })
     })
 }
 
-function getDeliveryItems(data) {
-    $.ajax({
-        url: ip.url + '/api/inventory/get-all-delivery-item',
-        data: {
-            'id': data['id']
-        },
-        success: (response)=> {
-            populateTable(response)
-        }
-    })
-}
-
-function populateTable(data) {
-    $('#inventory-history-item-body').empty()
+function populateTable(data,id) {
+    setRightTable(data[0]['price'])
+    const flag = data[0]['price'] === undefined;
     for(let i=0;i<data.length;i++) {
-        const price = data[i]['price'] === undefined ? '---' : parseFloat(data[i]['price']).toLocaleString()
-        const row = `<tr class="d-flex">
+        const rowNull = `<tr id="inventory-history-row-`+ data[i]['id'] +`" class="d-flex">
                         <th class="col-1">`+ (i+1) +`</th>
-                        <td class="col-5">`+ data[i]['name'] +`</td>
-                        <td class="col-2">&#8369; `+ price +`</td>
-                        <td class="col-2">`+ data[i]['quantity'] +`</td>
-                        <td class="col-2">&#8369; `+ parseFloat(data[i]['totalAmount']).toLocaleString() +`</td>
+                        <td class="text-start col-5">`+ data[i]['name'] +`</td>
+                        <td class="text-start col-2">&#8369; `+ data[i]['price'] +`</td>
+                        <td class="text-start col-2">`+ data[i]['quantity'] +`</td>
+                        <td class="text-start col-2">&#8369; `+ parseFloat(data[i]['totalAmount']).toLocaleString() +`</td>
                     </tr>`
-        $('#inventory-history-item-body').append(row)
+
+        const rowDelivery = `<tr id="inventory-history-row-`+ data[i]['id'] +`" class="d-flex">
+                        <th class="col-1">`+ (i+1) +`</th>
+                        <td class="text-start col-5">`+ data[i]['name'] +`</td>
+                        <td class="text-start col-2">`+ data[i]['quantity'] +`</td>
+                        <td class="text-start col-2">`+ parseFloat(data[i]['discountPercentage']).toLocaleString() +` %</td>
+                        <td class="text-start col-2">&#8369; `+ parseFloat(data[i]['totalAmount']).toLocaleString() +`</td>
+                    </tr>`
+        $('#inventory-history-item-body').append(flag ? rowDelivery : rowNull)
+        setProductClick($('#inventory-history-row-'+data[i]['id']), data[i],id)
+    }
+}
+
+function setProductClick(row, data,id) {
+    row.off('click')
+    row.on('click',()=> {
+        const quantity = parseInt(data['quantity'])
+        const totalPrice = multiply(data['price'],quantity).toLocaleString()
+        const totalAmount = parseFloat(data['totalAmount']).toLocaleString()
+        const productId = data['id'] === undefined ? data['productId'] : data['id']
+        $('#inventory-history-info-name').text(data['name'])
+        $('#inventory-history-info-id').text('ID: ' + productId)
+
+        if(id.charAt(0) === 'I') setDeliveryProductRow(parseFloat(data['totalPrice']).toLocaleString(), data['discountPercentage'],totalAmount)
+        else setNullProductRow(totalPrice,quantity,totalAmount)
+        $('#inventory-history-product-info').modal('show')
+    })
+}
+
+function setDeliveryProductRow(totalPrice,discount,totalAmount) {
+    $('#inventory-history-product-delivery').removeClass('d-none')
+    $('#inventory-history-product-null').addClass('d-none')
+    $('#inventory-history-info-cost-amount').val('\u20B1 ' + totalPrice)
+    $('#inventory-history-info-cost-discount').val(discount + ' %')
+    $('#inventory-history-info-cost-total').val('\u20B1 ' + totalAmount)
+}
+
+function setNullProductRow(totalPrice,quantity,totalAmount) {
+    $('#inventory-history-product-delivery').addClass('d-none')
+    $('#inventory-history-product-null').removeClass('d-none')
+    $('#inventory-history-info-amount').val('\u20B1 ' + totalPrice)
+    $('#inventory-history-info-amount-quantity').val(quantity)
+    $('#inventory-history-info-amount-total').val('\u20B1 ' + totalAmount)
+}
+
+function setRightTable(price) {
+    $('#inventory-history-item-body').empty()
+    if(price === undefined) {
+        $('#inventory-history-table-discount').removeClass('d-none')
+        $('#inventory-history-table-price').addClass('d-none')
+    }else {
+        $('#inventory-history-table-discount').addClass('d-none')
+        $('#inventory-history-table-price').removeClass('d-none')
     }
 }

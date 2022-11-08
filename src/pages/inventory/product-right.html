@@ -1,1 +1,36 @@
-add-left.html
+<div class="position-sticky top-0 bg-light rounded">
+    <div class="d-flex justify-content-between mb-1">
+        <p class="h2 m-0">Products</p>
+        <input type="button" class="btn btn-primary" value="Archive History">
+    </div>
+    <label class="d-flex justify-content-between">
+        <input id="inventory-product-search" spellcheck="false" type="text" class="form-control-sm" placeholder="Search by id, name or price">
+        <div class="dropdown">
+            <button id="inventory-product-filter" class="btn dropdown-toggle border border-dark rounded" type="button" data-bs-toggle="dropdown" aria-expanded="false">Filter By Id</button>
+            <ul class="dropdown-menu">
+                <li id="inventory-product-filter-1"><a class="dropdown-item" href="#">Id</a></li>
+                <li id="inventory-product-filter-2"><a class="dropdown-item" href="#">Name</a></li>
+                <li id="inventory-product-filter-3"><a class="dropdown-item" href="#">Stock L-H</a></li>
+                <li id="inventory-product-filter-4"><a class="dropdown-item" href="#">Stock H-L</a></li>
+                <li id="inventory-product-filter-5"><a class="dropdown-item" href="#">Price L-H</a></li>
+                <li id="inventory-product-filter-6"><a class="dropdown-item" href="#">Price H-L</a></li>
+            </ul>
+        </div>
+    </label>
+</div>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr class="d-flex">
+            <th class="col-1" scope="col">#</th>
+            <th class="col-2" scope="col">ID</th>
+            <th class="col-5" scope="col">Name</th>
+            <th class="col-2" scope="col">Price</th>
+            <th class="col-2" scope="col">Stock</th>
+        </tr>
+    </thead>
+    <tbody id="inventory-product-product">
+
+    </tbody>
+</table>
+<script type="module" defer src="src/js/pages/action/inventory/product.js"></script>

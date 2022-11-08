@@ -5,18 +5,20 @@
             <tr class="d-flex">
                 <th class="col-1" scope="col">#</th>
                 <th class="col-7 text-start" scope="col">ID</th>
-                <th class="col-4" scope="col">Date</th>
+                <th class="col-4 text-start" scope="col">Date</th>
             </tr>
             </thead>
             <tbody id="transaction-history-left-body"></tbody>
         </table>
     </div>
-    <div class="">
+    <div>
+        <hr>
         <label class="d-flex align-items-center">
             <div class="d-flex justify-content-end flex-grow-1">
                 <div class="dropdown">
-                    <button id="transaction-history-option" class="btn btn-secondary dropdown-toggle" type="button" style="width: 150px" data-bs-toggle="dropdown" aria-expanded="false">Report</button>
+                    <button id="transaction-history-option" class="btn btn-secondary dropdown-toggle" type="button" style="width: 150px" data-bs-toggle="dropdown" aria-expanded="false">All</button>
                     <ul class="dropdown-menu">
+                        <li id="transaction-history-option-3"><a class="dropdown-item" href="#">All</a></li>
                         <li id="transaction-history-option-1"><a class="dropdown-item" href="#">Report</a></li>
                         <li id="transaction-history-option-2"><a class="dropdown-item" href="#">Archived</a></li>
                     </ul>

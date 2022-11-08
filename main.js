@@ -10,13 +10,13 @@ const {app, BrowserWindow, Menu, ipcMain, dialog} = electron
 let logInWindow;
 let mainWindow;
 let serverProcess;
+let defaultResponse
 let returnResponse
 let deliveryResponse
 let nullResponse
 let inventoryDelete
-
-const mainMenuTemplate = [
-]
+let backToTransactionReturn
+let show
 
 app.on('ready',()=> {
     logInWindow = new BrowserWindow({
@@ -27,7 +27,7 @@ app.on('ready',()=> {
         }
     })
 
-    const mainMenu = Menu.buildFromTemplate(mainMenuTemplate)
+    const mainMenu = Menu.buildFromTemplate([])
     Menu.setApplicationMenu(mainMenu)
 
     logInWindow.loadFile('index.html')
@@ -45,9 +45,7 @@ app.on('window-all-closed', () => {
 
 function startServer(){
     let server = `${path.join(app.getAppPath(), 'src/content/java/capstone-backend.jar')}`;
-     serverProcess = exec('java -jar '+ server, ()=> {
-
-     })
+    serverProcess = exec('java -jar '+ server, ()=> {})
 }
 
 function createMainWindow(filePath) {
@@ -87,22 +85,35 @@ ipcMain.on('showError',(e,title,message)=> {
 })
 
 ipcMain.on('showMessage',(e,title,message)=> {
-    dialog.showMessageBoxSync(mainWindow,{
+    show = dialog.showMessageBoxSync(mainWindow,{
         title: title,
         message: message,
         type: 'none'})
+    mainWindow.webContents.send('show', show)
 })
 
 ipcMain.on('return',(e,id)=> {
     returnResponse = dialog.showMessageBoxSync(mainWindow,{
         title: 'Transaction History',
-        message: 'Delete ' + id,
+        message: 'Archive ' + id,
         type: 'none',
         noLink: true,
-        defaultId: 2,
-        buttons:['Delete','Delete All','Cancel']
+        defaultId: 1,
+        buttons:['Archive','Cancel']
     })
     mainWindow.webContents.send('returnResponse', returnResponse)
+})
+
+ipcMain.on('default',(e,title,message,button1, button2)=> {
+    defaultResponse = dialog.showMessageBoxSync(mainWindow,{
+        title: title,
+        message: message,
+        type: 'none',
+        noLink: true,
+        defaultId: 1,
+        buttons:[button1,button2]
+    })
+    mainWindow.webContents.send('default', defaultResponse)
 })
 
 ipcMain.on('delivery',(e,id)=> {
@@ -141,6 +152,18 @@ ipcMain.on('inventoryDelete',(e,id,link,flag)=> {
         buttons:['Archive','Cancel']
     })
     mainWindow.webContents.send('inventoryDeleteResponse', inventoryDelete)
+})
+
+ipcMain.on('backToTransactionReturn',(e)=> {
+    backToTransactionReturn = dialog.showMessageBoxSync(mainWindow,{
+        title: 'Back',
+        message: 'Route to Transaction Return Tab',
+        type: 'none',
+        noLink: true,
+        defaultId: 1,
+        buttons:['Yes','No']
+    })
+    mainWindow.webContents.send('backToTransactionReturn', backToTransactionReturn)
 })
 
 

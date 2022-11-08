@@ -3,42 +3,43 @@ import {
 } from "./action/inventory/add.js";
 import {startInventoryNull} from "./action/inventory/null.js";
 import {clearTable,clearIntervals} from "../function.js";
-import {startHistory} from "./action/inventory/history.js";
-
-$().ready(()=> {
-    $('#inventory-left').load('src/pages/inventory/add-left.html')
-    $('#inventory-right').load('src/pages/inventory/add-right.html')
-})
+import {startInventoryHistory} from "./action/inventory/history.js";
+import {startInventoryProduct} from "./action/inventory/product.js";
 
 export function setInventoryButtons() {
+    $('#btn-inventory-add').off('click')
     $('#btn-inventory-add').on('click',()=> {
-        clearIntervals()
         clearTable()
+        clearIntervals()
         startInventoryAdd()
         setAdd()
         setTimeout(()=> $('#main-section').removeClass('d-none'),500)
     })
 
+    $('#btn-inventory-null').off('click')
     $('#btn-inventory-null').on('click',()=> {
-        clearIntervals()
         clearTable()
+        clearIntervals()
         startInventoryNull()
         setNull()
         setTimeout(()=> $('#main-section').removeClass('d-none'),500)
     })
 
+    $('#btn-inventory-history').off('click')
     $('#btn-inventory-history').on('click',()=> {
-        clearIntervals()
         clearTable()
+        clearIntervals()
         setHistory()
-        startHistory()
+        startInventoryHistory()
         setTimeout(()=> $('#main-section').removeClass('d-none'),500)
     })
 
+    $('#btn-inventory-product').off('click')
     $('#btn-inventory-product').on('click',()=> {
-        clearIntervals()
         clearTable()
+        clearIntervals()
         setProduct()
+        startInventoryProduct()
         setTimeout(()=> $('#main-section').removeClass('d-none'),500)
     })
 

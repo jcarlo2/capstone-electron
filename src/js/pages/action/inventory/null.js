@@ -1,29 +1,31 @@
-import {
-    i_add_dropdown,
-    i_null_clear, i_null_dropdown,
-    i_null_generate_id, i_null_pay,
-    i_null_populate,
-    ip,
-    ipcRenderer,
-    json_var,
-} from "../../../variable.js";
-import {clearTable, multiply, setBorderColorNonDecimal, setRowColor} from "../../../function.js";
+import {i_null_generate_id, i_null_populate, ip, ipcRenderer, json_var,} from "../../../variable.js";
+import {ajaxSearchGet, clearTable, multiply, setBorderColorNonDecimal, setRowColor} from "../../../function.js";
 
 export function startInventoryNull(){
-    const interval = setInterval(()=> {
-        const search = $('#inventory-null-search').val()
-        if (search === '') findAllProduct()
-        else findProductBySearch(search)
-    },1000)
-    i_null_populate.setIntervalId(interval)
+    setSearch()
     autogenerateId()
     setClearButton()
     setSave()
     setDropDown()
 }
 
+function setSearch() {
+    const interval = setInterval(()=> {
+        const search = $('#inventory-null-search').val()
+        const filter = $('#inventory-null-filter').text()
+        if (search === '') {
+            ajaxSearchGet('/api/product/all-merchandise',filter)
+                .then((response)=> populateProductList(response))
+        } else if(search !== undefined) {
+            ajaxSearchGet('/api/product/search-merchandise',search)
+                .then((response)=> populateProductList(response))
+        }
+    },1000)
+    i_null_populate.setIntervalId(interval)
+}
+
 function setDropDown() {
-    i_null_dropdown.setIntervalId(setInterval(()=> {
+    const interval = setInterval(()=> {
         const button = $('#inventory-null-filter')
 
         $('#inventory-null-filter-1').on('click',()=> {
@@ -48,12 +50,12 @@ function setDropDown() {
         $('#inventory-null-filter-6').on('click',()=> {
             button.text('Filter By Price H-L')
         })
-        if($('#inventory-null-filter').length === 1) clearInterval(i_add_dropdown.getIntervalId())
-    }))
+        if($('#inventory-null-filter').length === 1) clearInterval(interval)
+    })
 }
 
 function setSave() {
-    i_null_pay.setIntervalId(setInterval(()=> {
+    const interval = setInterval(()=> {
         $('#inventory-null-pay').off('click')
         $('#inventory-null-pay').on('click',()=> {
             ipcRenderer.send('nullReport',$('#inventory-null-report').text().substring(4))
@@ -65,8 +67,8 @@ function setSave() {
                 }
             })
         })
-        if($('#inventory-null-pay').length === 1) clearInterval(i_null_pay.getIntervalId())
-    },1000))
+        if($('#inventory-null-pay').length === 1) clearInterval(interval)
+    },1000)
 }
 
 function autogenerateId() {
@@ -95,40 +97,16 @@ function generateId() {
 }
 
 export function setClearButton() {
-    i_null_clear.setIntervalId(setInterval(()=> {
+    const interval = setInterval(()=> {
+        $('#inventory-null-clear').off('click')
         $('#inventory-null-clear').on('click',()=> {
             $('#inventory-null-left-table').empty()
+            $('#inventory-null-left-total').text('Total: \u20B1 0.00')
             json_var.i_null_report_item = []
             checkDisabledSaveButton()
         })
-        if($('#inventory-null-clear').length === 1) clearInterval(i_null_clear.getIntervalId())
-    },1000))
-}
-
-function findAllProduct() {
-    $.ajax({
-        url: ip.url + '/api/product/all-merchandise',
-        type: 'GET',
-        data: {
-            'filter': $('#inventory-null-filter').text()
-        },
-        success: function (response) {
-            $('#inventory-add-product').empty()
-            populateProductList(response)
-        },
-    })
-}
-
-function findProductBySearch(search) {
-    $.ajax({
-        url: ip.url + '/api/product/search-merchandise',
-        type: 'GET',
-        data: {'search': search},
-        success:function (response) {
-            $('#inventory-add-product').empty()
-            populateProductList(response)
-        },
-    })
+        if($('#inventory-null-clear').length === 1) clearInterval(interval)
+    },1000)
 }
 
 function populateProductList(data) {
@@ -140,9 +118,9 @@ function populateProductList(data) {
 
         const row = `<tr id="null-product-`+ id +`" class="d-flex">
                         <th class="col-1" scope="row">`+ (i+1) +`</th>
-                        <td class="col-3">`+ id +`</td>
-                        <td class="col-5">`+ name +`</td>
-                        <td class="col-3">`+ stock +`</td>
+                        <td class="col-3 text-start">`+ id +`</td>
+                        <td class="col-5 text-start">`+ name +`</td>
+                        <td class="col-3 text-start">`+ stock +`</td>
                     </tr>`
         $('#inventory-null-product').append(row)
         setClick($('#null-product-'+id),data[i])
@@ -240,10 +218,10 @@ function populateLeftTable() {
     for(let i=0;i<table.length;i++) {
         const row = `<tr class="d-flex">
                         <td class="col-1">`+ (i+1) +`</td>
-                        <td class="col-5">`+ table[i]['name'] +`</td>
-                        <td class="col-2">`+ table[i]['quantity'] +`</td>
-                        <td class="col-3">&#8369; `+ parseFloat(table[i]['totalAmount']).toLocaleString() +`</td>
-                        <td class="col-1" id="inventory-left-`+ table[i]['id'] +`"><i class="custom-pointer fa-solid fa-rectangle-xmark text-danger"></td>
+                        <td class="col-5 text-start">`+ table[i]['name'] +`</td>
+                        <td class="col-2 text-start">`+ table[i]['quantity'] +`</td>
+                        <td class="col-3 text-start">&#8369; `+ parseFloat(table[i]['totalAmount']).toLocaleString() +`</td>
+                        <td class="col-1 text-start" id="inventory-left-`+ table[i]['id'] +`"><i class="custom-pointer fa-solid fa-rectangle-xmark text-danger"></td>
                     </tr>`
         $('#inventory-null-left-table').append(row)
         setRemoveButton($('#inventory-left-'+ table[i]['id']),table[i]['id'])
@@ -285,7 +263,6 @@ function makeReport() {
     const id = $('#inventory-null-report').text().substring(4)
     const user = $('#main-user-name').text()
     const total = $('#inventory-null-left-total').text().substring(9)
-    console.log(total)
     json_var.i_null_report[0] = {
         'id': id,
         'user': user,
@@ -294,6 +271,7 @@ function makeReport() {
         'timestamp': '',
         'link': '',
         'isValid': '1',
+        'reason': 'Default'
     }
 }
 
@@ -304,12 +282,12 @@ function saveReport() {
         data: JSON.stringify(json_var.i_null_report[0]),
         type: 'POST',
         success: ()=> {
-            saveReportItem()
+            saveReportItem(json_var.i_null_report[0]['id'])
         }
     })
 }
 
-function saveReportItem() {
+function saveReportItem(id) {
     setItem()
     $.ajax({
         url: ip.url + '/api/inventory/save-null-item',
@@ -320,6 +298,7 @@ function saveReportItem() {
             clearTable()
             $('#inventory-null-left-table').empty()
             $('#inventory-null-left-total').text('Total: \u20B1 0.00')
+            ipcRenderer.send('showMessage','Null Report', id + ' is saved successfully')
         }
     })
 }

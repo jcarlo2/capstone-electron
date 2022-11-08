@@ -54,7 +54,6 @@ $().ready(() => {
             main.removeClass('d-none')
             startInventoryAdd()
             setInventoryButtons()
-            $('#btn-inventory-add').prop('disabled',true)
         },1000)
         clearIntervals()
     })
@@ -64,8 +63,16 @@ $().ready(() => {
         $('#main-inventory').prop('disabled',false)
         $('#main-generate').prop('disabled',true)
         $('#main-log').prop('disabled',false)
+        main.addClass('d-none')
+        spinner.removeClass('d-none')
         $('#main-section').load('src/pages/generate.html')
         clearIntervals()
+        setTimeout(()=> {
+            // $('#generate-left').load('src/pages/generate/generate-left.html')
+            // $('#generate-right').load('src/pages/generate/generate-right.html')
+            spinner.addClass('d-none')
+            main.removeClass('d-none')
+        },1000)
     })
 
     $('#main-log').on('click',()=> {

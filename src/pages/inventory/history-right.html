@@ -4,8 +4,11 @@
             <input id="inventory-history-user" class="form-control-sm me-2" type="text" readonly placeholder="Cashier">
             <input id="inventory-history-id" class="form-control-sm me-2" type="text" readonly placeholder="Reference No.">
             <input id="inventory-history-date"  class="form-control-sm me-2" type="text" readonly placeholder="Date">
-            <input id="inventory-history-total"  class="form-control-sm me-5" type="text" readonly placeholder="Total">
-            <input id="inventory-history-archive"  class="btn btn-sm btn-danger" type="button" value="Archive">
+            <input id="inventory-history-total"  class="w-75 form-control-sm me-2" type="text" readonly placeholder="Total">
+            <a id="inventory-history-report-info"  class="w-25 me-5 d-flex justify-content-center align-items-center a-line" type="button">
+                <i class="fa-solid fa-circle-info"></i>
+            </a>
+            <input id="inventory-history-archive"  class="invisible btn btn-sm btn-danger" type="button" value="Archive">
             <div id="inventory-history-hidden" class="d-none"></div>
         </label>
     </div>
@@ -14,8 +17,9 @@
         <tr class="d-flex">
             <th class="col-1" scope="col">#</th>
             <th class="col-5 text-start" scope="col">Name</th>
-            <th class="col-2" scope="col">Price</th>
+            <th id="inventory-history-table-price" class="col-2" scope="col">Price</th>
             <th class="col-2" scope="col">Qty</th>
+            <th id="inventory-history-table-discount" class="col-2 d-none" scope="col">Discount</th>
             <th class="col-2" scope="col">Total</th>
         </tr>
         </thead>

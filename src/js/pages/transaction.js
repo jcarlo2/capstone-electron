@@ -12,6 +12,7 @@ $().ready(() => {
 })
 
 export function setTransactionButtons() {
+    $('#btn-transaction-add').off('click')
     $('#btn-transaction-add').on('click',() => {
         setAdd()
         clearIntervals()
@@ -20,6 +21,7 @@ export function setTransactionButtons() {
         setTimeout(()=> $('#main-section').removeClass('d-none'),500)
     })
 
+    $('#btn-transaction-return').off('click')
     $('#btn-transaction-return').on('click',() => {
         setReturn()
         clearIntervals()
@@ -28,6 +30,7 @@ export function setTransactionButtons() {
         setTimeout(()=> $('#main-section').removeClass('d-none'),500)
     })
 
+    $('#btn-transaction-history').off('click')
     $('#btn-transaction-history').on('click',() => {
         setHistory()
         clearIntervals()
@@ -36,33 +39,33 @@ export function setTransactionButtons() {
         setDelete()
         setTimeout(()=> $('#main-section').removeClass('d-none'),500)
     })
+}
 
-    function setAdd() {
-        $('#btn-transaction-add').prop('disabled',true)
-        $('#btn-transaction-return').prop('disabled',false)
-        $('#btn-transaction-history').prop('disabled',false)
-        $('#main-section').addClass('d-none')
-        $('#transaction-left').load('src/pages/transaction/left-add.html')
-        $('#transaction-right').load('src/pages/transaction/right-add.html')
-    }
+export function setAdd() {
+    $('#btn-transaction-add').prop('disabled',true)
+    $('#btn-transaction-return').prop('disabled',false)
+    $('#btn-transaction-history').prop('disabled',false)
+    $('#main-section').addClass('d-none')
+    $('#transaction-left').load('src/pages/transaction/left-add.html')
+    $('#transaction-right').load('src/pages/transaction/right-add.html')
+}
 
-    function setReturn() {
-        $('#btn-transaction-add').prop('disabled',false)
-        $('#btn-transaction-return').prop('disabled',true)
-        $('#btn-transaction-history').prop('disabled',false)
-        $('#main-section').addClass('d-none')
-        $('#transaction-left').load('src/pages/transaction/left-return.html')
-        $('#transaction-right').load('src/pages/transaction/right-return.html')
-    }
+function setReturn() {
+    $('#btn-transaction-add').prop('disabled',false)
+    $('#btn-transaction-return').prop('disabled',true)
+    $('#btn-transaction-history').prop('disabled',false)
+    $('#main-section').addClass('d-none')
+    $('#transaction-left').load('src/pages/transaction/left-return.html')
+    $('#transaction-right').load('src/pages/transaction/right-return.html')
+}
 
-    function setHistory() {
-        $('#btn-transaction-add').prop('disabled',false)
-        $('#btn-transaction-return').prop('disabled',false)
-        $('#btn-transaction-history').prop('disabled',true)
-        $('#main-section').addClass('d-none')
-        $('#transaction-left').load('src/pages/transaction/left-history.html')
-        $('#transaction-right').load('src/pages/transaction/right-history.html')
-    }
+function setHistory() {
+    $('#btn-transaction-add').prop('disabled',false)
+    $('#btn-transaction-return').prop('disabled',false)
+    $('#btn-transaction-history').prop('disabled',true)
+    $('#main-section').addClass('d-none')
+    $('#transaction-left').load('src/pages/transaction/left-history.html')
+    $('#transaction-right').load('src/pages/transaction/right-history.html')
 }
 
 

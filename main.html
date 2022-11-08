@@ -2,15 +2,16 @@
 <html lang="en">
   <head>
     <title>Computerized Sales And Inventory</title>
+    <link rel="stylesheet" href="src/css/main.css">
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.css">
     <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.css">
     <link rel="stylesheet" href="node_modules/bootstrap-icons/font/bootstrap-icons.css">
   </head>
-  <body class="min-vh-100 vh-100 p-2 overflow-hidden">
+  <body class="min-vh-100 vh-100 pt-2 overflow-hidden">
     <div class="container-fluid d-flex justify-content-between">
       <div class="d-flex justify-content-between">
         <div class="pt-3">
-          <h6 id="main-user-name" class="h5 rounded bg-primary bg-opacity-25 border border-dark p-1">EmployeeName</h6>
+          <h6 id="main-user-name" class="h5 rounded bg-primary bg-opacity-25 border border-dark p-1">USER ID</h6>
         </div>
       </div>
       <div>
@@ -134,10 +135,15 @@
               <div class="d-flex mb-2">
                 <label class="d-flex">
                   <input id="add-pay-payment" type="number" placeholder="Payment" autofocus class="w-50 me-2 form-control-sm border border-danger border-5">
-                  <i class="ms-2 pt-2 fa-solid fa-minus"></i>
+                  <i id="add-pay-credit-plus" class="d-none pt-2 fa-solid fa-plus"></i>
+                  <input id="add-pay-credit" type="text" placeholder="Credit" readonly class="d-none mx-2 text-center border border-3 border-info w-25 form-control-sm">
+                  <i class="pt-2 fa-solid fa-minus"></i>
                   <input id="add-pay-total" type="text" placeholder="Total" readonly class="mx-2 text-center border border-1 border-dark w-25 form-control-sm">
                   <i class="me-2 pt-2 fa-solid fa-equals"></i>
                   <input id="add-pay-change" type="text" placeholder="Change" readonly class="border border-1 border-dark w-25 form-control-sm">
+                  <a id="add-pay-admin" class="d-none ms-2 d-flex justify-content-end align-items-center a-line" type="button">
+                    <i class="fa-regular fa-circle-question"></i>
+                  </a>
                 </label>
               </div>
               <p id="add-pay-modal-id" class="add-pay-modal-info m-0">Ref No: TR0000000</p>
@@ -178,13 +184,18 @@
         <div class="modal-content">
           <div class="modal-header d-flex justify-content-end">
             <div class="d-flex flex-column align-content-start w-100">
-              <div class="d-flex mb-2">
+              <div class="d-flex mb-2 w-100">
                 <label class="d-flex">
-                  <input id="return-pay-payment" type="text" placeholder="Payment"  readonly class="w-50 me-2 form-control-sm border border-success border-5">
-                  <i class="ms-2 pt-2 fa-solid fa-minus"></i>
-                  <input id="return-pay-total" type="text" placeholder="Total" readonly class="mx-2 text-center border border-1 border-dark w-25 form-control-sm">
-                  <i class="me-2 pt-2 fa-solid fa-equals"></i>
-                  <input id="return-pay-change" type="text" placeholder="Change" readonly class="border border-1 border-dark w-25 form-control-sm">
+                  <input id="return-pay-payment" type="text" placeholder="Payment"  readonly class="w-50 form-control-sm border border-success border-5">
+                  <i class="mx-2 pt-2 fa-solid fa-minus"></i>
+                  <input id="return-pay-total" type="text" placeholder="Total" readonly class="text-center border border-1 border-dark w-50 form-control-sm">
+                  <i class="ms-2 pt-2 fa-solid fa-equals"></i>
+                  <div class="d-flex justify-content-end">
+                    <input id="return-pay-change" type="text" placeholder="Change" readonly class="w-75 border border-1 border-dark form-control-sm me-2">
+                    <a id="return-pay-admin" class="d-flex justify-content-end align-items-center a-line" type="button">
+                      <i class="fa-regular fa-circle-question"></i>
+                    </a>
+                  </div>
                 </label>
               </div>
               <p id="return-pay-modal-id" class="add-pay-modal-info m-0">Ref No: TR0000000</p>
@@ -206,14 +217,14 @@
               <tbody id="transaction-return-modal-body">
               </tbody>
             </table>
-
           </div>
           <div class="modal-footer d-flex flex-column">
             <div class="fw-bold d-flex justify-content-end w-100">
               <p id="transaction-return-modal-total" class="mt-0">Total: &#8369; 0.00</p>
             </div>
             <div class="d-flex">
-              <button id="transaction-return-modal-confirm" type="button" disabled class="btn btn-success" data-bs-dismiss="modal">CONFIRM</button>
+              <button id="transaction-return-modal-confirm" type="button" disabled class="btn btn-success" data-bs-dismiss="modal">CONTINUE</button>
+              <button id="transaction-return-modal-refund" type="button" disabled class="ms-3 btn btn-warning" data-bs-dismiss="modal">REFUND</button>
               <button id="transaction-return-modal-cancel" type="button" class="ms-3 btn btn-danger" data-bs-dismiss="modal">CANCEL</button>
             </div>
           </div>
@@ -240,28 +251,22 @@
                 <ul class="dropdown-menu">
                   <li><a id="return-item-drop-1" class="dropdown-item" href="#">None</a></li>
                   <li><a id="return-item-drop-2" class="dropdown-item" href="#">Exp/Dmg</a></li>
-                  <li><a id="return-item-drop-3" class="dropdown-item" href="#">Return</a></li>
+                  <li><a id="return-item-drop-3" class="dropdown-item" href="#">Change</a></li>
                 </ul>
               </div>
             <div id="return-item-main" class="d-none d-flex flex-column">
               <hr class="w-100">
               <div class="d-flex flex-column align-content-center">
-                <p class="h5">Returned Item</p>
+                <p class="h5">Return Quantity</p>
                 <label>
                   <div class="d-flex mt-2">
                     <input id="return-item-ret-1" type="number" min="0" placeholder="Returned Quantity" class="w-25 form-control-sm py-0">
-                    <i class="fa-solid fa-asterisk pt-2 px-2"></i>
-                    <input id="return-item-ret-2" type="text" placeholder="&#8369; 0.00" readonly class="w-25 form-control-sm">
-                    <i class="px-2 pt-2 fa-solid fa-minus"></i>
-                    <input id="return-item-ret-4" type="text" value="0 %" readonly class="w-25 form-control-sm">
-                    <i class="pt-2 px-2 fa-solid fa-equals"></i>
-                    <input id="return-item-ret-3" type="text" placeholder="&#8369; 0.00" readonly class="w-25 form-control-sm">
                   </div>
                 </label>
               </div>
               <hr class="w-100">
               <div class="d-flex flex-column align-content-center">
-                <p class="h5">Original</p>
+                <p class="h5">New</p>
                 <label>
                   <div class="d-flex mt-2">
                     <input id="return-item-original-1" type="number" min="0" readonly placeholder="Quantity" class="w-25 form-control-sm py-0">
@@ -283,13 +288,62 @@
       </div>
     </div>
 
+    <!-- transaction history row info -->
+    <div class="modal modal-lg fade" id="transaction-history-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="d-flex flex-column align-content-start">
+              <h3 id="transaction-history-info-name">Product Name</h3>
+              <h5 id="transaction-history-info-id">ID: Sample</h5>
+              <h5 id="transaction-history-info-capital">Capital: &#8369; 100.00</h5>
+            </div>
+          </div>
+          <div class="modal-body d-md-flex flex-column justify-content-center align-items-center">
+            <div class="d-flex justify-content-between w-100">
+              <p class="h6 pt-2">Total Price</p>
+              <label class="d-flex">
+                <input type="text" id="transaction-history-info-price" readonly class="form-control-sm" placeholder="Price">
+                <i class="pt-2 px-1 fa-solid fa-multiply" aria-hidden="true"></i>
+                <input type="text" id="transaction-history-info-price-quantity" readonly class="form-control-sm" placeholder="Quantity">
+                <i class="pt-2 px-1 fa-solid fa-equals" aria-hidden="true"></i>
+                <input type="text" id="transaction-history-info-price-total" readonly class="form-control-sm" placeholder="Total Price">
+              </label>
+            </div>
+            <hr class="w-100">
+            <div class="d-flex justify-content-between w-100">
+              <p class="h6 pt-2">Total Amount</p>
+              <label class="d-flex">
+                <input type="text" id="transaction-history-info-amount-price" readonly class="form-control-sm" placeholder="Total Price">
+                <i class="pt-2 px-1 fa-solid fa-minus" aria-hidden="true"></i>
+                <input type="text" id="transaction-history-info-amount-discount" readonly class="form-control-sm" placeholder="Discount">
+                <i class="pt-2 px-1 fa-solid fa-equals" aria-hidden="true"></i>
+                <input type="text" id="transaction-history-info-amount-total" readonly class="form-control-sm" placeholder="Total Amount">
+              </label>
+            </div>
+            <hr class="w-100">
+            <div class="d-flex justify-content-between w-100">
+              <p class="h6 pt-2">Total Profit</p>
+              <label class="d-flex">
+                <input type="text" id="transaction-history-info-profit-amount" readonly class="form-control-sm" placeholder="Total Amount">
+                <i class="pt-2 px-1 fa-solid fa-minus" aria-hidden="true"></i>
+                <input type="text" id="transaction-history-info-profit-capital" readonly class="form-control-sm" placeholder="Total Capital">
+                <i class="pt-2 px-1 fa-solid fa-equals" aria-hidden="true"></i>
+                <input type="text" id="transaction-history-info-profit-total" readonly class="form-control-sm" placeholder="Total Profit">
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- inventory add product -->
     <div class="modal fade" id="inventory-add-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <h3 id="inventory-add-title">Modal title</h3>
-            <div id="inventory-add-hidden"></div>
+            <div id="inventory-add-hidden" class="d-none"></div>
           </div>
           <div class="modal-body d-md-flex flex-column justify-content-center align-items-center">
             <label class="p-0 m-0 d-flex flex-column">
@@ -352,7 +406,244 @@
       </div>
     </div>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- inventory history report info -->
+    <div class="modal fade modal-sm" id="inventory-history-report" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="d-flex flex-column align-content-start">
+              <h3 id="inventory-history-report-id">Report Id</h3>
+            </div>
+          </div>
+          <div class="modal-body d-md-flex flex-column justify-content-center align-items-center">
+            <div class="d-flex justify-content-between w-100 mb-2">
+              <p class="h5 pt-1">User</p>
+              <label>
+                <input id="inventory-history-report-user" type="text" class="form-control-sm" readonly placeholder="User">
+              </label>
+            </div>
+            <div class="d-flex justify-content-between w-100 mb-2">
+              <p class="h5 pt-1">Date</p>
+              <label>
+                <input id="inventory-history-report-date" type="text" class="form-control-sm" readonly placeholder="Date">
+              </label>
+            </div>
+            <div class="d-flex justify-content-between w-100 mb-2">
+              <p class="h5 pt-1">Total</p>
+              <label>
+                <input id="inventory-history-report-total" type="text" class="form-control-sm" readonly placeholder="Total">
+              </label>
+            </div>
+            <div class="d-flex justify-content-between w-100 mb-2">
+              <p class="h5 pt-1">Reason</p>
+              <label>
+                <input id="inventory-history-report-reason" type="text" class="form-control-sm" readonly placeholder="Reason">
+              </label>
+            </div>
+            <div class="d-flex justify-content-between w-100 mb-2">
+              <p class="h5 pt-1">Link</p>
+              <label>
+                <input id="inventory-history-report-link" type="text" class="form-control-sm" readonly placeholder="Link">
+              </label>
+            </div>
+            <div class="d-flex justify-content-between w-100 mb-2">
+              <p class="h5 pt-1">Archived</p>
+              <label class="d-flex justify-content-end">
+                <input id="inventory-history-report-archived" type="text" class="text-center w-50 form-control-sm" readonly placeholder="Archived">
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- inventory history product row info -->
+    <div class="modal modal-lg fade" id="inventory-history-product-info" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="d-flex flex-column align-content-start">
+              <h3 id="inventory-history-info-name">Product Name</h3>
+              <h5 id="inventory-history-info-id">ID: Sample</h5>
+            </div>
+          </div>
+          <div class="modal-body d-md-flex flex-column justify-content-center align-items-center">
+            <div id="inventory-history-product-delivery" class="d-flex justify-content-between w-100">
+              <p class="h6 pt-2">Total Cost</p>
+              <label class="d-flex">
+                <input type="text" id="inventory-history-info-cost-amount" readonly class="form-control-sm" placeholder="Cost">
+                <i class="pt-2 px-1 fa-solid fa-minus" aria-hidden="true"></i>
+                <input type="text" id="inventory-history-info-cost-discount" readonly class="form-control-sm" placeholder="Discount">
+                <i class="pt-2 px-1 fa-solid fa-equals" aria-hidden="true"></i>
+                <input type="text" id="inventory-history-info-cost-total" readonly class="form-control-sm" placeholder="Total Cost">
+              </label>
+            </div>
+            <div id="inventory-history-product-null" class="d-flex justify-content-between w-100">
+              <p class="h6 pt-2">Total Amount</p>
+              <label class="d-flex">
+                <input type="text" id="inventory-history-info-amount" readonly class="form-control-sm" placeholder="Price">
+                <i class="pt-2 px-1 fa-solid fa-multiply" aria-hidden="true"></i>
+                <input type="text" id="inventory-history-info-amount-quantity" readonly class="form-control-sm" placeholder="Quantity">
+                <i class="pt-2 px-1 fa-solid fa-equals" aria-hidden="true"></i>
+                <input type="text" id="inventory-history-info-amount-total" readonly class="form-control-sm" placeholder="Total Price">
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- inventory history discount info -->
+    <div class="modal fade" id="inventory-history-discount-list" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="d-flex flex-column w-100 align-content-start">
+              <h3 id="inventory-discount-product-id" class="text-start">Product Id</h3>
+              <h5 id="inventory-discount-product-name" class="text-start">Product Name</h5>
+            </div>
+          </div>
+          <div class="modal-body">
+            <label class="d-flex flex-column w-100">
+              <div class="d-flex justify-content-between mb-2">
+                <p class="h5">Quantity</p>
+                <input id="inventory-discount-add-quantity" type="number" class="form-control-sm" readonly placeholder="Quantity">
+              </div>
+              <div class="d-flex justify-content-between">
+                <p class="h5">Discount Percentage</p>
+                <input id="inventory-discount-add-percent" type="text" class="form-control-sm" readonly placeholder="Discount Percentage">
+              </div>
+            </label>
+          </div>
+          <div class="modal-footer d-flex justify-content-center">
+            <input id="inventory-discount-add-save" type="button" title="Save discount" class="btn btn-success" value="Save">
+            <input id="inventory-discount-add-archive" type="button" title="Archive a discount" class="btn btn-warning" value="Archive">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- product history update and discount-->
+    <div class="modal fade" id="product-history-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog ">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="d-flex flex-column w-100 align-content-start">
+              <div class="d-flex justify-content-between">
+                <h3 id="product-history-name" class="text-start">Product Name</h3>
+                <div class="d-flex">
+                  <input id="product-update-history" value="Update" type="button" class="btn btn-primary me-2">
+                  <input id="product-discount-history" value="Discount" type="button" class="btn btn-primary">
+                </div>
+              </div>
+                <h5 id="product-history-id" class="text-start">Product Id</h5>
+              </div>
+          </div>
+          <div class="modal-body">
+            <table class="table table-striped table-hover mb-0" id="inventory-product-table">
+              <thead class="position-sticky top-0 bg-light" id="product-head">
+              <tr class="d-flex">
+                <th class="col-1" scope="col">#</th>
+                <th class="col-3 text-center" scope="col">Price</th>
+                <th class="col-3 text-center" scope="col">Capital</th>
+                <th class="col-5 text-center" scope="col">Updated At</th>
+              </tr>
+              </thead>
+              <tbody id="product-history-body"></tbody>
+            </table>
+            <table class="table table-striped table-hover mb-0" id="discount-table">
+              <thead class="position-sticky top-0 bg-light" id="discount-head">
+              <tr class="d-flex">
+                <th class="col-1" scope="col">#</th>
+                <th class="col-6 text-center" scope="col">Quantity</th>
+                <th class="col-5 text-center" scope="col">Discount %</th>
+              </tr>
+              </thead>
+              <tbody id="discount-history-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- inventory add product modal -->
+    <div class="modal fade" id="inventory-product-add-history" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog ">
+        <div class="modal-content">
+          <div class="modal-header">
+            <p class="h3">Add Product</p>
+          </div>
+          <div class="modal-body">
+            <div class="d-flex flex-column w-100">
+              <div class="d-flex justify-content-between">
+                <p class="h5 fw-bold">ID</p>
+                <label>
+                  <input id="database-product-add-id" type="text" class="form-control-sm mb-2 border border-danger border-3" placeholder="Product ID">
+                </label>
+              </div>
+              <div class="d-flex justify-content-between">
+                <p class="h5 fw-bold">Name</p>
+                <label>
+                  <input id="database-product-add-name" type="text" class="form-control-sm mb-2" placeholder="Product Name">
+                </label>
+              </div>
+              <div class="d-flex justify-content-between">
+                <p class="h5 fw-bold">Price</p>
+                <label>
+                  <input id="database-product-add-price" type="number" class="form-control-sm mb-2" placeholder="Product Price">
+                </label>
+              </div>
+              <div class="d-flex justify-content-between">
+                <p class="h5 fw-bold">Capital</p>
+                <label>
+                  <input id="database-product-add-capital" type="number" class="form-control-sm mb-2" placeholder="Product Capital">
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <div class="d-flex w-100 justify-content-center">
+              <input id="database-product-add-btn" type="button" disabled value="Add" class="btn btn-success">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- product archive history-->
+    <div class="modal fade" id="product-archive-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog ">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="d-flex flex-column w-100 align-content-start">
+              <div class="d-flex justify-content-between">
+                <h3 id="product-archive-name" class="text-start">Product Name</h3>
+                <div class="d-flex">
+                  <input id="product-update-archive" value="Update" type="button" class="btn btn-primary me-2">
+                  <input id="product-discount-archive" value="Discount" type="button" class="btn btn-primary">
+                </div>
+              </div>
+              <h5 id="product-archive-id" class="text-start">Product Id</h5>
+            </div>
+          </div>
+          <div class="modal-body">
+            <table class="table table-striped table-hover mb-0">
+              <thead class="position-sticky top-0 bg-light">
+              <tr class="d-flex">
+                <th class="col-1" scope="col">#</th>
+                <th class="col-3 text-center" scope="col">Price</th>
+                <th class="col-3 text-center" scope="col">Capital</th>
+                <th class="col-5 text-center" scope="col">Updated At</th>
+              </tr>
+              </thead>
+              <tbody id="product-archive-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
     <script>window.$ = window.jQuery = require('jquery')</script>
     <script src="node_modules/@popperjs/core/dist/umd/popper.min.js"></script>
     <script src="node_modules/bootstrap/dist/js/bootstrap.js"></script>
