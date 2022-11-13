@@ -1,45 +1,22 @@
 import {ip, ipcRenderer, json_var, t_ret_new_total, t_ret_populate} from "../../../variable.js";
-import {
-    ajaxDefault,
-    ajaxDefaultArray,
-    ajaxUrl,
-    clearIntervals,
-    divide,
-    getDate,
-    multiply,
-    subtract
-} from "../../../function.js";
+import {ajaxDefaultArray, ajaxUrl, clearIntervals, divide, getDate, multiply, subtract} from "../../../function.js";
 import {returnChangeItem} from "./add.js";
 
 export function startReturn() {
-    t_ret_populate.setIntervalId(setInterval(()=> {
+    t_ret_populate.intervalId = setInterval(()=> {
         const search = $('#transaction-return-left-search').val()
         const start = $('#transaction-return-start').val()
         const end = $('#transaction-return-end').val()
-        if(search !== '') ajaxSearch('/api/transaction/search-transaction',search)
-        else if(start !== '' && end === '') ajaxSearch('/api/transaction/search-start',start)
-        else if(start === '' && end !== '') ajaxSearch('/api/transaction/search-end',end)
-        else if(start !== '' && end !== '') {
-            ajaxDefaultArray('/api/transaction/search-date',{'start':start,'end':end})
-                .then((response)=> {
-                    populate(response)
-                })
-        } else if(search !== undefined) {
-            ajaxUrl('/api/transaction/get-all-valid-report')
-                .then((response)=> {
-                    populate(response)
-                })
-        }
-    },1000))
+        let ajax = undefined
+        if(search !== '') ajax = ajaxDefaultArray('/api/transaction/search-transaction',{'search':search})
+        else if(start !== '' && end === '') ajax = ajaxDefaultArray('/api/transaction/search-start',{'start':start})
+        else if(start === '' && end !== '') ajax = ajaxDefaultArray('/api/transaction/search-end',{'end': end})
+        else if(start !== '' && end !== '') ajax = ajaxDefaultArray('/api/transaction/search-date',{'start':start,'end':end})
+        else if(search !== undefined) ajax = ajaxUrl('/api/transaction/get-all-valid-report')
+        if(ajax !== undefined) ajax.then((response)=> populate(response))
+    },1000)
     setReturnResetButton()
     setNewTotal()
-}
-
-function ajaxSearch(url,data) {
-    ajaxDefault(url,data)
-        .then((response)=> {
-            populate(response)
-        })
 }
 
 function setReturnResetButton() {
@@ -66,7 +43,7 @@ function setReturnResetButton() {
 }
 
 function setNewTotal() {
-    t_ret_new_total.setIntervalId(setInterval(()=> {
+    t_ret_new_total.intervalId = setInterval(()=> {
         const table = json_var.t_ret_table
         if(table.length === 0)  {
             $('#right-return-credit').val('')
@@ -77,7 +54,7 @@ function setNewTotal() {
             newTotal += table[i]['totalAmount'] ? parseFloat(table[i]['totalAmount']) : 0
         }
         $('#right-return-credit').val('\u20B1 ' + newTotal.toLocaleString())
-    },1000))
+    },1000)
 }
 
 function populate(data) {
@@ -174,7 +151,7 @@ function getOriginalData(i,productId,capital,timestamp) {
             const str = parseInt(data['sold']) > 1 ? 'pieces' : 'piece'
             $('#transaction-return-pieces').text(data['sold'] + ' ' + str)
             $('#transaction-return-hidden').addClass(productId)
-            $('#transaction-return-hidden').addClass(capital)
+            $('#transaction-return-hidden').addClass(capital.toString())
             $('#transaction-return-hidden').addClass(total)
         }
     })
@@ -275,6 +252,7 @@ function noneReason(table,nullTable,id,quantity,price,discount) {
 }
 
 function updateNullTable(table,id,price,quantity,discount,reason,capital,name) {
+
     let flag = true
     for(let i=0;i<table.length;i++) {
         if(table[i]['id'] === id) {

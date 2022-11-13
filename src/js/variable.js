@@ -1,5 +1,6 @@
 export const {ipcRenderer} = require('electron')
-
+export const path = require('platform-folders')
+export const charts = require('highcharts')
 class IP {
     _url = 'http://localhost:8080'
 
@@ -38,14 +39,14 @@ class RowStockColor {
 export const stockInfo = new RowStockColor()
 
 class IntervalVariable {
-    intervalId = 999
+    _intervalId = 999
 
-    getIntervalId() {
-       return this.intervalId
+    get intervalId() {
+       return this._intervalId
     }
 
-    setIntervalId(set) {
-        this.intervalId = set
+    set intervalId(value) {
+        this._intervalId = value
     }
 }
 
@@ -80,10 +81,6 @@ export const json_var = {
     'i_null_report' : [],
 }
 
-export const copy = {
-    't_ret_table_null' : []
-};
-
 // transaction interval
 
 export const t_add_populate = new IntervalVariable()
@@ -101,6 +98,8 @@ export const i_add_generate_id = new IntervalVariable()
 export const i_null_populate = new IntervalVariable()
 export const i_null_generate_id = new IntervalVariable()
 export const i_history_populate = new IntervalVariable()
+export const i_product_discount = new IntervalVariable()
+export const i_product_archive = new IntervalVariable()
 
 
 class Buttons {

@@ -1,5 +1,5 @@
 import {i_add_generate_id, i_add_input, i_add_populate, ip, ipcRenderer, json_var,} from "../../../variable.js";
-import {ajaxSearchGet, divide, multiply, setRowColor, subtract} from "../../../function.js";
+import {ajaxDefaultArray, divide, multiply, setRowColor, subtract} from "../../../function.js";
 
 export function startInventoryAdd() {
     setSearch()
@@ -52,7 +52,7 @@ function setDropDown() {
 }
 
 function autogenerateId() {
-    i_add_generate_id.setIntervalId(setInterval(()=> {
+    i_add_generate_id.intervalId = setInterval(()=> {
         $.ajax({
             url: ip.url + '/api/inventory/is-exist-delivery-id',
             dataType: 'json',
@@ -64,7 +64,7 @@ function autogenerateId() {
                 if(response) generateId()
             }
         })
-    },500))
+    },500)
 }
 
 function setInventoryAddSave() {
@@ -88,31 +88,25 @@ function checkDisabledSaveButton() {
 }
 
 function setSearch() {
-    const interval = setInterval(()=> {
+    i_add_populate.intervalId = setInterval(() => {
         const search = $('#inventory-add-search').val()
         const filter = $('#inventory-add-filter').text()
-        if (search === '') {
-            ajaxSearchGet('/api/product/all-merchandise',filter)
-                .then((response)=> populateProductList(response))
-        } else if(search !== undefined) {
-            ajaxSearchGet('/api/product/search-merchandise',search)
-                .then((response)=>populateProductList(response))
-        }
-
-    },1000)
-    i_add_populate.setIntervalId(interval)
+        let ajax = undefined
+        if (search === '') ajax = ajaxDefaultArray('/api/product/all-merchandise',{'filter': filter})
+        else if (search !== undefined) ajax = ajaxDefaultArray('/api/product/search-merchandise',{'search': search})
+        if(ajax !== undefined) ajax.then((response)=> populateProductList(response))
+    }, 1000)
 }
 
 function setAddModalInput() {
-    i_add_input.setIntervalId(setInterval(()=> {
+    i_add_input.intervalId = setInterval(()=> {
         let quantity = $('#inventory-add-quantity').val()
         let cost = $('#inventory-add-cost').val()
         quantity = parseFloat(quantity)
         cost = parseFloat(cost)
-
         checkInventoryModalButton(quantity,cost)
         checkInventoryModalInputBorder(quantity,cost)
-    },500))
+    },500)
 }
 
 function checkInventoryModalInputBorder(quantity,cost) {
@@ -239,7 +233,7 @@ function populateLeftList() {
                         <td class="col-1">`+ (i+1) +`</td>
                         <td class="col-5 text-start">`+ table[i]['productId'] +`</td>
                         <td class="col-2 text-start">`+ table[i]['quantity'] +`</td>
-                        <td class="col-3 text-start">&#8369; `+ table[i]['totalAmount'].toLocaleString() +`</td>
+                        <td class="col-3 text-start">&#8369; `+ parseFloat(table[i]['totalAmount']).toLocaleString() +`</td>
                         <td class="col-1 text-start" id="inventory-add-list-`+i+`"><i class="custom-pointer fa-solid fa-rectangle-xmark text-danger"></i></td>
                     </tr>`
         $('#inventory-add-left-table').append(row)

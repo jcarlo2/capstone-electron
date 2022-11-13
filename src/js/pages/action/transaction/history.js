@@ -4,7 +4,7 @@ import {ajaxDefaultArray, ajaxUrl, divide, multiply, subtract} from "../../../fu
 export function startHistory() {
     setOption()
     // FIX * ADD "ALL" OPTION
-    t_history_populate.setIntervalId(setInterval(()=> {
+    t_history_populate.intervalId = setInterval(()=> {
         const search = $('#transaction-history-left-search').val()
         const start = $('#transaction-history-start').val()
         const end = $('#transaction-history-end').val()
@@ -30,7 +30,7 @@ export function startHistory() {
             else if(option === 'All') ajaxUrl('/api/transaction/get-all-report').then((response)=> populate(response))
             else ajaxUrl('/api/transaction/get-all-archived-report').then((response)=> populate(response))
         }
-    },500))
+    },500)
 }
 
 function populate(data) {

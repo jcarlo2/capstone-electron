@@ -1,7 +1,7 @@
 import {ip, ipcRenderer, json_var, t_add_dropdown, t_add_populate, t_add_report_id,} from "../../../variable.js";
 import {
     add,
-    ajaxSearchGet,
+    ajaxDefaultArray,
     ajaxPostStringify,
     divide,
     getDate,
@@ -37,7 +37,7 @@ function setTransactionAddClear() {
 }
 
 function setDropDown() {
-    t_add_dropdown.setIntervalId(setInterval(()=> {
+    t_add_dropdown.intervalId = setInterval(()=> {
         const button = $('#transaction-add-filter')
 
         $('#transaction-add-filter-1').on('click',()=> {
@@ -62,12 +62,12 @@ function setDropDown() {
         $('#transaction-add-filter-6').on('click',()=> {
             button.text('Filter By Price H-L')
         })
-        if($('#transaction-add-filter').length === 1) clearInterval(t_add_dropdown.getIntervalId())
-    }))
+        if($('#transaction-add-filter').length === 1) clearInterval(t_add_dropdown.intervalId)
+    })
 }
 
 function reportIdListener() {
-    t_add_report_id.setIntervalId(setInterval(()=> {
+    t_add_report_id.intervalId = setInterval(()=> {
         const id = $('#transaction-left-add-report').text().substring(4)
         $.ajax({
             url: ip.url + '/api/transaction/is-exist-report-id',
@@ -77,25 +77,18 @@ function reportIdListener() {
                 if(response) generateId()
             }
         })
-    },500))
+    },500)
 }
 
 function startSearch() {
-    const interval = setInterval(()=> {
+    t_add_populate.intervalId = setInterval(() => {
         const search = $('#transaction-add-search').val()
         const filter = $('#transaction-add-filter').text()
-        if (search === '') searchProduct('/api/product/all-merchandise',filter)
-        else if(search !== undefined) searchProduct('/api/product/search-merchandise',search)
-    },1000)
-    t_add_populate.setIntervalId(interval)
-}
-
-function searchProduct(url,data) {
-    ajaxSearchGet(
-        url,data
-    ).then((r1)=> {
-        populateProductList(r1)
-    })
+        let ajax = undefined
+        if (search === '') ajax = ajaxDefaultArray('/api/product/all-merchandise',{'filter':filter})
+        else if (search !== undefined) ajax = ajaxDefaultArray('/api/product/search-merchandise',{'search':search})
+        if(ajax !== undefined) ajax.then((response)=> populateProductList(response))
+    }, 1000)
 }
 
 function populateProductList(data) {
@@ -121,9 +114,10 @@ function populateProductList(data) {
 
 function setClick(data,row) {
     row.on('click', ()=> {
+
         $('#transaction-add-title').text(data['name'])
         $('#transaction-add-hidden').addClass(data['id'])
-        $('#transaction-add-hidden').addClass(data['capital'])
+        $('#transaction-add-hidden').addClass(data['capital'].toString())
         $('#transaction-add-quantity').val('')
         $('#transaction-add-sum').val('')
         $('#transaction-add-discount').val('')
@@ -520,7 +514,7 @@ export function returnChangeItem(t_item,t_report,n_item,n_report,d_item,d_report
         if($('#transaction-left-add-report').length === 1) {
             assignTableValue(t_item,n_item)
             populateLeftList(json_var.t_add_report_item)
-            clearInterval(t_add_report_id.getIntervalId())
+            clearInterval(t_add_report_id.intervalId)
             setFieldFromReturn(t_report['id'],t_report['totalAmount'],credit)
             setTabButtons(true)
             setClearButton()

@@ -17,6 +17,7 @@ let nullResponse
 let inventoryDelete
 let backToTransactionReturn
 let show
+let buttonArray
 
 app.on('ready',()=> {
     logInWindow = new BrowserWindow({
@@ -114,6 +115,18 @@ ipcMain.on('default',(e,title,message,button1, button2)=> {
         buttons:[button1,button2]
     })
     mainWindow.webContents.send('default', defaultResponse)
+})
+
+ipcMain.on('buttonArray',(e,title,message,button,def)=> {
+    buttonArray = dialog.showMessageBoxSync(mainWindow,{
+        title: title,
+        message: message,
+        type: 'none',
+        noLink: true,
+        defaultId: def,
+        buttons:button
+    })
+    mainWindow.webContents.send('buttonArray', buttonArray)
 })
 
 ipcMain.on('delivery',(e,id)=> {

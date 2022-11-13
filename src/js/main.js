@@ -6,6 +6,7 @@ import {startTransactionAdd} from "./pages/action/transaction/add.js";
 import {startInventoryAdd} from "./pages/action/inventory/add.js";
 import {setInventoryButtons} from "./pages/inventory.js";
 import {clearIntervals} from "./function.js";
+import {startGenerate} from "./pages/generate.js";
 
 
 $().ready(() => {
@@ -68,8 +69,9 @@ $().ready(() => {
         $('#main-section').load('src/pages/generate.html')
         clearIntervals()
         setTimeout(()=> {
-            // $('#generate-left').load('src/pages/generate/generate-left.html')
-            // $('#generate-right').load('src/pages/generate/generate-right.html')
+            $('#generate-main-left').load('src/pages/generate/generate-left.html')
+            $('#generate-main-right').load('src/pages/generate/generate-right.html')
+            startGenerate()
             spinner.addClass('d-none')
             main.removeClass('d-none')
         },1000)

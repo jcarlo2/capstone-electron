@@ -1,5 +1,5 @@
 import {i_null_generate_id, i_null_populate, ip, ipcRenderer, json_var,} from "../../../variable.js";
-import {ajaxSearchGet, clearTable, multiply, setBorderColorNonDecimal, setRowColor} from "../../../function.js";
+import {ajaxDefaultArray, clearTable, multiply, setBorderColorNonDecimal, setRowColor} from "../../../function.js";
 
 export function startInventoryNull(){
     setSearch()
@@ -10,18 +10,14 @@ export function startInventoryNull(){
 }
 
 function setSearch() {
-    const interval = setInterval(()=> {
+    i_null_populate.intervalId = setInterval(() => {
         const search = $('#inventory-null-search').val()
         const filter = $('#inventory-null-filter').text()
-        if (search === '') {
-            ajaxSearchGet('/api/product/all-merchandise',filter)
-                .then((response)=> populateProductList(response))
-        } else if(search !== undefined) {
-            ajaxSearchGet('/api/product/search-merchandise',search)
-                .then((response)=> populateProductList(response))
-        }
-    },1000)
-    i_null_populate.setIntervalId(interval)
+        let ajax = undefined
+        if (search === '') ajax = ajaxDefaultArray('/api/product/all-merchandise',{'filter': filter})
+        else if (search !== undefined) ajax = ajaxDefaultArray('/api/product/search-merchandise',{'search': search})
+        if(ajax !== undefined) ajax.then((response)=> populateProductList(response))
+    }, 1000)
 }
 
 function setDropDown() {
@@ -72,7 +68,7 @@ function setSave() {
 }
 
 function autogenerateId() {
-    i_null_generate_id.setIntervalId(setInterval(()=> {
+    i_null_generate_id.intervalId = setInterval(()=> {
         $.ajax({
             url: ip.url + '/api/inventory/is-exist-null-id',
             dataType: 'json',
@@ -84,7 +80,7 @@ function autogenerateId() {
                 if(response) generateId()
             }
         })
-    },500))
+    },500)
 }
 
 function generateId() {

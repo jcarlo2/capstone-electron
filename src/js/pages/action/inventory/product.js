@@ -1,5 +1,12 @@
-import {ipcRenderer, t_add_populate} from "../../../variable.js";
-import {ajaxDefault, ajaxPostStringify, ajaxSearchGet, setRowColor} from "../../../function.js";
+import {i_product_archive, i_product_discount, ipcRenderer, t_add_populate} from "../../../variable.js";
+import {
+    add,
+    ajaxDefaultArray,
+    ajaxPostNonString,
+    ajaxPostStringify,
+    ajaxUrl,
+    setRowColor
+} from "../../../function.js";
 
 export function startInventoryProduct() {
     setSearch()
@@ -10,6 +17,54 @@ export function startInventoryProduct() {
     setAddButton()
     setUpdateButton()
     setArchiveButton()
+    setProductArchive()
+    setProductArchiveTable()
+}
+function setProductArchive() {
+    const interval = setInterval(()=>{
+        $('#inventory-product-archive').off('click')
+        $('#inventory-product-archive').on('click',()=> {
+            $('#product-archive-modal').modal('show')
+        })
+        if($('#inventory-product-archive').length === 1) clearInterval(interval)
+    },1000)
+}
+
+function setProductArchiveTable() {
+    i_product_archive.intervalId = setInterval(()=> {
+        ajaxUrl('/api/product/product-archive-list')
+            .then((response)=> {
+                populateArchiveProductTable(response)
+            })
+    },1000)
+}
+
+function populateArchiveProductTable(data) {
+    $('#product-archive-body').empty()
+    for(let i in data) {
+        const row = `<tr id="product-archive-`+ i +`" class="d-flex">
+                        <th class="col-1">`+ add(i,1) +`</th>
+                        <th class="col-2 text-center">`+ data[i]['id'] +`</th>
+                        <th class="col-3 text-center">`+ data[i]['name'] +`</th>
+                        <th class="col-2 text-center">&#8369; `+ data[i]['price'] +`</th>
+                        <th class="col-2 text-center">&#8369; `+ data[i]['capital'] +`</th>
+                        <th class="col-2 text-center">`+ data[i]['quantityPerPieces'] +`</th>
+                    </tr>`
+        $('#product-archive-body').append(row)
+        setClickToUnarchived($('#product-archive-'+i),data[i])
+    }
+}
+
+function setClickToUnarchived(row,data) {
+    row.off('click')
+    row.on('click',()=> {
+        ipcRenderer.send('buttonArray','Unarchive Product', 'Unarchive product: ' + data['id'] + '.\nRetain or start with zero stock?',['Retain','Zero','Cancel'],2)
+        ipcRenderer.removeAllListeners('buttonArray')
+        ipcRenderer.on('buttonArray',(e,num)=> {
+            if(num === 0) ajaxPostNonString('/api/product/unarchived-product',{'id':data['id'],'isZero':false})
+            else if(num === 1) ajaxPostNonString('/api/product/unarchived-product',{'id':data['id'],'isZero':true})
+        })
+    })
 }
 
 function setArchiveButton() {
@@ -19,7 +74,7 @@ function setArchiveButton() {
             const id = $('#inventory-product-update').val()
             const name = $('#inventory-product-name').val()
             if(id !== '') {
-                ajaxDefault('/api/product/product-archive',id)
+                ajaxDefaultArray('/api/product/product-archive',{'id':id})
                     .then(()=> {
                         ipcRenderer.send('default','Archive Product',id + ' : ' + name,'Archive','Cancel')
                         ipcRenderer.removeAllListeners('default')
@@ -112,8 +167,8 @@ $('#product-discount-history').on('click',()=> {
 
 function setHistory(id) {
     $.when(
-        ajaxDefault('/api/product/find-all-invalid-discount',id),
-        ajaxDefault('/api/product/get-product-history',id)
+        ajaxDefaultArray('/api/product/find-all-archived-discount-id',{'id':id}),
+        ajaxDefaultArray('/api/product/get-product-history',{'id':id})
     ).done((discount,product)=> {
         populateProductHistoryModal(product[0])
         populateDiscountHistoryModal(discount[0])
@@ -138,6 +193,10 @@ function setAddDiscount() {
            const name = $('#inventory-product-name').val()
            $('#inventory-discount-add-save').removeClass('d-none')
            $('#inventory-discount-add-archive').addClass('d-none')
+           $('#inventory-discount-add-quantity').removeClass('border-dark')
+           $('#inventory-discount-add-quantity').removeClass('border-2')
+           $('#inventory-discount-add-quantity').addClass('border-danger')
+           $('#inventory-discount-add-quantity').addClass('border-4')
            $('#inventory-discount-add-quantity').prop('readonly',false)
            $('#inventory-discount-add-percent').prop('readonly',false)
            $('#inventory-discount-product-id').text(id)
@@ -152,15 +211,47 @@ function setAddDiscount() {
 function setAddDiscountSave() {
     $('#inventory-discount-add-save').off('click')
     $('#inventory-discount-add-save').on('click',()=> {
-        
+        const id = $('#inventory-product-update').val()
+        const discount = $('#inventory-discount-add-percent').val()
+        let quantity = $('#inventory-discount-add-quantity').val()
+        if((discount === '' || discount === 0) && (quantity === '' || quantity === 0)) ipcRenderer.send('showError','Add Discount','Invalid: check discount percentage')
+        else ajaxPostNonString('/api/product/add-product-discount',{'quantity':quantity,'discount':discount,'id':id})
+            .then(()=> {
+                ipcRenderer.send('showMessage','Add Product Discount', id + ': successfully added new discount.')
+            })
     })
 }
+
+$('#inventory-discount-add-quantity').on('keyup',()=> {
+    const id = $('#inventory-product-update').val()
+    let quantity = $('#inventory-discount-add-quantity').val()
+    quantity = quantity === '' ? 0 : parseInt(quantity)
+    ajaxDefaultArray('/api/product/check-discount-quantity-exist',{'id':id,'quantity':quantity})
+        .then((response)=> {
+            if(quantity === 0 || response) {
+                $('#inventory-discount-add-quantity').removeClass('border-success')
+                $('#inventory-discount-add-quantity').addClass('border-danger')
+                $('#inventory-discount-add-save').prop('disabled',true)
+            } else {
+                $('#inventory-discount-add-quantity').addClass('border-success')
+                $('#inventory-discount-add-quantity').removeClass('border-danger')
+                $('#inventory-discount-add-save').prop('disabled',false)
+            }
+        })
+})
+
+$('#inventory-history-discount-list').on('bs.hidden.modal',()=> {
+    $('#inventory-discount-add-quantity').removeClass('border-success')
+    $('#inventory-discount-add-quantity').addClass('border-danger')
+    $('#inventory-discount-add-save').prop('disabled',true)
+})
 
 function clear() {
     $('#inventory-product-update').val('')
     $('#inventory-product-name').val('')
     $('#inventory-product-price').val('')
     $('#inventory-product-capital').val('')
+    clearInterval(i_product_discount.intervalId)
     $('#inventory-product-discount').empty()
 }
 
@@ -202,30 +293,26 @@ function setDropDown() {
 }
 
 function setSearch() {
-    const interval = setInterval(()=> {
+    t_add_populate.intervalId = setInterval(() => {
         const search = $('#inventory-product-search').val()
         const filter = $('#inventory-product-filter').text()
-        if (search === '') {
-            ajaxSearchGet('/api/product/all-merchandise',filter)
-                .then((response)=> populateProductList(response))
-        } else if(search !== undefined) {
-            ajaxSearchGet('/api/product/search-merchandise',search)
-                .then((response)=> populateProductList(response))
-        }
-    },1000)
-    t_add_populate.setIntervalId(interval)
+        let ajax = undefined
+        if (search === '') ajax = ajaxDefaultArray('/api/product/all-merchandise',{'filter': filter})
+        else if (search !== undefined) ajax = ajaxDefaultArray('/api/product/search-merchandise',{'search': search})
+        if(ajax !== undefined) ajax.then((response)=> populateProductList(response))
+    }, 1000)
 }
 
 function populateProductList(data) {
     const list = $('#inventory-product-product')
     list.empty()
-    for(let i=0;i<data.length;i++) {
+    for(let i in data) {
         const id = data[i]['id']
         const price = data[i]['price']
         const name = data[i]['name']
         let quantity = parseInt(data[i]['quantityPerPieces'])
         const row = `<tr id="inventory-product-table-`+ id +`" class="inventory-product-item d-flex">
-                        <th class="col-1" scope="row">`+ (i+1) +`</th>
+                        <th class="col-1" scope="row">`+ add(i,1) +`</th>
                         <td class="col-2 text-start">`+ id +`</td>
                         <td class="col-5 text-start">`+ name +`</td>
                         <td class="col-2 text-start">&#8369; `+ price +`</td>
@@ -244,10 +331,13 @@ function setClick(data,row) {
         $('#inventory-product-name').val(data['name'])
         $('#inventory-product-price').val(data['price'])
         $('#inventory-product-capital').val(data['capital'])
-        ajaxDefault('/api/product/find-all-valid-discount',id)
-            .then((response)=> {
-                populateDiscount(response)
-            })
+        clearInterval(i_product_discount.intervalId)
+        i_product_discount.intervalId = setInterval(()=> {
+            if(id !== '' || id !== undefined) {
+                ajaxDefaultArray('/api/product/find-all-valid-discount',{'id':id})
+                    .then((response)=> populateDiscount(response))
+            }
+        },1000)
     })
 }
 
@@ -255,7 +345,7 @@ function populateDiscount(data) {
     $('#inventory-product-discount').empty()
     for(let i in data) {
         const row = `<tr id="inventory-discount-row-`+ data[i]['quantity'] +`" class="d-flex">
-                        <td class="col-1 ">`+ (parseInt(i)+1) +`</td>
+                        <td class="col-1 ">`+ add(i,1) +`</td>
                         <td class="col-6 text-center">`+ data[i]['quantity'] +`</td>
                         <td class="col-5 text-center" >`+ data[i]['discount'] +` %</td>
                     </tr>`
@@ -268,6 +358,9 @@ function setClickDiscount(row,data) {
     row.off('click')
     row.on('click',()=> {
         const name = $('#inventory-product-name').val()
+        $('#inventory-discount-add-quantity').removeClass('border-4')
+        $('#inventory-discount-add-quantity').addClass('border-dark')
+        $('#inventory-discount-add-quantity').addClass('border-2')
         $('#inventory-discount-add-save').addClass('d-none')
         $('#inventory-discount-add-archive').removeClass('d-none')
         $('#inventory-discount-add-quantity').prop('readonly',true)
@@ -275,7 +368,7 @@ function setClickDiscount(row,data) {
         $('#inventory-discount-product-id').text(data['id'])
         $('#inventory-discount-product-name').text(name)
         $('#inventory-discount-add-quantity').val(data['quantity'])
-        $('#inventory-discount-add-percent').val(data['discount'] + ' %')
+        $('#inventory-discount-add-percent').val(data['discount'])
         $('#inventory-history-discount-list').modal('show')
     })
 }
@@ -288,14 +381,33 @@ $('#inventory-history-discount-list').on('hidden.bs.modal',()=> {
     $('#inventory-discount-add-save').off('click')
 })
 
+$('#inventory-discount-add-archive').on('click',()=> {
+    const id = $('#inventory-product-update').val()
+    const discount = $('#inventory-discount-add-percent').val()
+    const quantity = $('#inventory-discount-add-quantity').val()
+    ipcRenderer.send('default','Archive Discount','Do you want to archive ' + id + ' : ' + discount + ' %','Continue','Cancel')
+    ipcRenderer.removeAllListeners('default')
+    ipcRenderer.on('default',(e,num)=> {
+        if(num === 0) {
+            ajaxPostNonString('/api/product/archive-product-discount',{'id':id,'quantity':quantity})
+                .then(()=> {
+                    ipcRenderer.send('showMessage','Archive Discount', id + ' : ' + discount + ' % is successfully archived.')
+                    clear()
+                    $('#inventory-history-discount-list').modal('hide')
+                })
+        }
+    })
+})
+
 function populateProductHistoryModal(data) {
     $('#product-history-body').empty()
     for(let i in data) {
         const row = `<tr class="d-flex">
                         <td class="col-1">`+ (parseInt(i) + 1) +`</td>
-                        <td class="col-3">&#8369; `+ parseFloat(data[i]['price']).toLocaleString() +`</td>
-                        <td class="col-3">&#8369; `+ parseFloat(data[i]['capital']).toLocaleString() +`</td>
-                        <td class="col-5">`+ data[i]['createdAt'] +`</td>
+                        <td class="col-4">`+ data[i]['name'] +`</td>
+                        <td class="col-2">&#8369; `+ parseFloat(data[i]['price']).toLocaleString() +`</td>
+                        <td class="col-2">&#8369; `+ parseFloat(data[i]['capital']).toLocaleString() +`</td>
+                        <td class="col-3">`+ data[i]['createdAt'] +`</td>
                     </tr>`
         $('#product-history-body').append(row)
     }
@@ -306,8 +418,9 @@ function populateDiscountHistoryModal(data) {
     for(let i in data) {
         const row = `<tr class="d-flex">
                         <td class="col-1">`+ (parseInt(i) + 1) +`</td>
-                        <td class="col-5">`+ data[i]['quantity'] +`</td>
-                        <td class="col-6">`+ data[i]['discount'] +`</td>
+                        <td class="col-3">`+ data[i]['quantity'] +`</td>
+                        <td class="col-3">`+ data[i]['discount'] +`</td>
+                        <td class="col-5">`+ data[i]['timestamp'] +`</td>
                     </tr>`
         $('#discount-history-body').append(row)
     }
@@ -321,7 +434,10 @@ $('#product-history-modal').on('hidden.bs.modal',()=> {
 
 $('#inventory-product-add-history').on('hidden.bs.modal',()=> {
     $('#database-product-add-id').removeClass('border-success')
-    $('#database-product-add-id').addClass('border-danger')
+    $('#database-product-add-id').removeClass('border-danger')
+    $('#database-product-add-id').removeClass('border-4')
+    $('#database-product-add-id').addClass('border-dark')
+    $('#database-product-add-id').addClass('border-2')
     $('#database-product-add-id').val('')
     $('#database-product-add-name').val('')
     $('#database-product-add-price').val('')
@@ -334,15 +450,21 @@ $('#inventory-product-add-history').on('hidden.bs.modal',()=> {
  */
 $('#database-product-add-id').on('keyup',()=> {
     const id = $('#database-product-add-id').val()
-    ajaxDefault('/api/product/is-product-exist',id)
+    ajaxDefaultArray('/api/product/is-product-exist',{'id':id})
         .then((response)=> {
             if(id === '' || response) {
                 $('#database-product-add-id').removeClass('border-success')
+                $('#database-product-add-id').removeClass('border-dark')
+                $('#database-product-add-id').removeClass('border-2')
                 $('#database-product-add-id').addClass('border-danger')
+                $('#database-product-add-id').addClass('border-4')
                 $('#database-product-add-btn').prop('disabled',true)
             } else {
                 $('#database-product-add-id').addClass('border-success')
+                $('#database-product-add-id').addClass('border-4')
                 $('#database-product-add-id').removeClass('border-danger')
+                $('#database-product-add-id').removeClass('border-dark')
+                $('#database-product-add-id').removeClass('border-2')
                 $('#database-product-add-btn').prop('disabled',false)
             }
         })

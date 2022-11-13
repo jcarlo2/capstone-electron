@@ -1,4 +1,4 @@
-import {i_history_populate, ip, ipcRenderer} from "../../../variable.js";
+import {i_history_populate, ipcRenderer} from "../../../variable.js";
 import {ajaxDefaultArray, ajaxPostNonString, ajaxUrl, multiply} from "../../../function.js";
 
 export function startInventoryHistory() {
@@ -8,7 +8,7 @@ export function startInventoryHistory() {
 }
 
 function setSearch() {
-    i_history_populate.setIntervalId(setInterval(()=> {
+    i_history_populate.intervalId = setInterval(()=> {
         const option = $('#inventory-history-option').text()
         const search = $('#inventory-history-left-search').val()
         const start = $('#inventory-history-start').val()
@@ -20,7 +20,7 @@ function setSearch() {
         else if(start !== '' && end !== '') ajax = getAllReportByDate(option,start,end)
         else if(search !== undefined) ajax = getAllReport(option)
         if(ajax !== undefined) ajax.then((response)=> populateLeftList(response))
-    },1000))
+    },1000)
 }
 
 function setArchive() {
@@ -66,22 +66,6 @@ function archivePostNonString(link,id) {
         })
 }
 
-function archiveNullReportWithLink(link,id) {
-    $.ajax({
-        url: ip.url + '/api/inventory/archived-null-link',
-        data: {
-            'link': link,
-            'id': id,
-        },
-        success: (response)=> {
-            if(response) {
-                ipcRenderer.send('showMessage','Report archive', id + ' is successfully archived')
-                clear()
-            } else ipcRenderer.send('showError','Report archive', 'Invalid: not the newest report')
-        }
-    })
-}
-
 function clear() {
     $('#inventory-history-item-body').empty()
     $('#inventory-history-id').val('')
@@ -94,12 +78,11 @@ function clear() {
 }
 
 function getAllReport(option) {
-    const all = '/api/inventory/get-all-null-and-delivery'
     if(option === 'Null Report') return ajaxUrl('/api/inventory/get-all-null-report')
     else if(option === 'Null Archived') return ajaxUrl('/api/inventory/get-all-archived-null-report')
     else if(option === 'Delivery Report') return ajaxUrl('/api/inventory/get-all-delivery-report')
     else if(option === 'Delivery Archived') return ajaxUrl('/api/inventory/get-all-archived-delivery-report')
-    else return ajaxUrl(all)
+    else return ajaxUrl('/api/inventory/get-all-null-and-delivery')
 }
 
 function getAllReportBySearch(option,search) {
@@ -107,15 +90,15 @@ function getAllReportBySearch(option,search) {
     else if(option === 'Null Archived') return ajaxDefaultArray('/api/inventory/get-all-archived-null-report-search',{'search':search})
     else if(option === 'Delivery Report') return ajaxDefaultArray('/api/inventory/get-all-delivery-report-search',{'search':search})
     else if(option === 'Delivery Archived') return ajaxDefaultArray('/api/inventory/get-all-archived-delivery-report-search',{'search':search})
-    else console.log('SEARCH')
+    else return ajaxDefaultArray('/api/inventory/get-all-null-and-delivery-search',{'search':search})
 }
 
 function getAllReportByDate(option,start,end) {
-    if(option === 'Null Archived') return ajaxDefaultArray('/api/inventory/get-all--null-report-date',{'start':start,'end':end})
+    if(option === 'Null Archived') return ajaxDefaultArray('/api/inventory/get-all-null-report-date',{'start':start,'end':end})
     else if(option === 'Null Report') return ajaxDefaultArray('/api/inventory/get-all-archived-null-report-date',{'start':start,'end':end})
     else if(option === 'Delivery Archived') return ajaxDefaultArray('/api/inventory/get-all-delivery-report-date',{'start':start,'end':end})
     else if(option === 'Delivery Report') return ajaxDefaultArray('/api/inventory/get-all-archived-delivery-report-date',{'start':start,'end':end})
-    else console.log('DATE')
+    else return ajaxDefaultArray('/api/inventory/get-all-null-and-delivery-date',{'start':start,'end':end})
 }
 
 function getAllReportByEnd(option,end) {
@@ -123,7 +106,7 @@ function getAllReportByEnd(option,end) {
     else if(option === 'Null Archived') return ajaxDefaultArray('/api/inventory/get-all-archived-null-report-end',{'end':end})
     else if(option === 'Delivery Report')  return ajaxDefaultArray('/api/inventory/get-all-delivery-report-end',{'end':end})
     else if(option === 'Delivery Archived')  return ajaxDefaultArray('/api/inventory/get-all-archived-delivery-report-end',{'end':end})
-    else console.log('END')
+    else return ajaxDefaultArray('/api/inventory/get-all-null-and-delivery-end',{'end':end})
 }
 
 function getAllReportByStart(option,start) {
@@ -131,7 +114,7 @@ function getAllReportByStart(option,start) {
     else if(option === 'Null Archived') return ajaxDefaultArray('/api/inventory/get-all-archived-null-report-start',{'start':start})
     else if(option === 'Delivery Report') return ajaxDefaultArray('/api/inventory/get-all-delivery-report-start',{'start':start})
     else if(option === 'Delivery Archived') return ajaxDefaultArray('/api/inventory/get-archived-all-delivery-report-start',{'start':start})
-    else console.log('START')
+    else return ajaxDefaultArray('/api/inventory/get-all-null-and-delivery-start',{'start':start})
 }
 
 function populateLeftList(data) {

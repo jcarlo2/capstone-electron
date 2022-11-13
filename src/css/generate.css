@@ -1,7 +1,11 @@
-.set-top {
-    height: 10vh;
+.set-generate {
+    height: 87vh;
 }
 
-.set-bot {
-    height: 75vh;
+.generate-main-left {
+    width: 55%;
+}
+
+.index-z {
+    z-index: 1;
 }

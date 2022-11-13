@@ -507,16 +507,16 @@
             <label class="d-flex flex-column w-100">
               <div class="d-flex justify-content-between mb-2">
                 <p class="h5">Quantity</p>
-                <input id="inventory-discount-add-quantity" type="number" class="form-control-sm" readonly placeholder="Quantity">
+                <input id="inventory-discount-add-quantity" type="number" class="form-control-sm border border-danger border-4" readonly placeholder="Quantity">
               </div>
               <div class="d-flex justify-content-between">
-                <p class="h5">Discount Percentage</p>
-                <input id="inventory-discount-add-percent" type="text" class="form-control-sm" readonly placeholder="Discount Percentage">
+                <p class="h5">Discount [%]</p>
+                <input id="inventory-discount-add-percent" type="number" class="form-control-sm" readonly placeholder="Discount Percentage">
               </div>
             </label>
           </div>
           <div class="modal-footer d-flex justify-content-center">
-            <input id="inventory-discount-add-save" type="button" title="Save discount" class="btn btn-success" value="Save">
+            <input id="inventory-discount-add-save" disabled type="button" title="Save discount" class="btn btn-success" value="Save">
             <input id="inventory-discount-add-archive" type="button" title="Archive a discount" class="btn btn-warning" value="Archive">
           </div>
         </div>
@@ -525,7 +525,7 @@
 
     <!-- product history update and discount-->
     <div class="modal fade" id="product-history-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-      <div class="modal-dialog ">
+      <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header">
             <div class="d-flex flex-column w-100 align-content-start">
@@ -544,9 +544,10 @@
               <thead class="position-sticky top-0 bg-light" id="product-head">
               <tr class="d-flex">
                 <th class="col-1" scope="col">#</th>
-                <th class="col-3 text-center" scope="col">Price</th>
-                <th class="col-3 text-center" scope="col">Capital</th>
-                <th class="col-5 text-center" scope="col">Updated At</th>
+                <th class="col-4 text-center" scope="col">Name</th>
+                <th class="col-2 text-center" scope="col">Price</th>
+                <th class="col-2 text-center" scope="col">Capital</th>
+                <th class="col-3 text-center" scope="col">Updated At</th>
               </tr>
               </thead>
               <tbody id="product-history-body"></tbody>
@@ -555,8 +556,9 @@
               <thead class="position-sticky top-0 bg-light" id="discount-head">
               <tr class="d-flex">
                 <th class="col-1" scope="col">#</th>
-                <th class="col-6 text-center" scope="col">Quantity</th>
-                <th class="col-5 text-center" scope="col">Discount %</th>
+                <th class="col-3 text-center" scope="col">Quantity</th>
+                <th class="col-3 text-center" scope="col">Discount %</th>
+                <th class="col-5 text-center" scope="col">Archived At</th>
               </tr>
               </thead>
               <tbody id="discount-history-body"></tbody>
@@ -611,29 +613,22 @@
     </div>
 
     <!-- product archive history-->
-    <div class="modal fade" id="product-archive-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-      <div class="modal-dialog ">
+    <div class="modal fade modal-lg" id="product-archive-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header">
-            <div class="d-flex flex-column w-100 align-content-start">
-              <div class="d-flex justify-content-between">
-                <h3 id="product-archive-name" class="text-start">Product Name</h3>
-                <div class="d-flex">
-                  <input id="product-update-archive" value="Update" type="button" class="btn btn-primary me-2">
-                  <input id="product-discount-archive" value="Discount" type="button" class="btn btn-primary">
-                </div>
-              </div>
-              <h5 id="product-archive-id" class="text-start">Product Id</h5>
-            </div>
+            <h3>Archived Products</h3>
           </div>
           <div class="modal-body">
             <table class="table table-striped table-hover mb-0">
               <thead class="position-sticky top-0 bg-light">
               <tr class="d-flex">
                 <th class="col-1" scope="col">#</th>
-                <th class="col-3 text-center" scope="col">Price</th>
-                <th class="col-3 text-center" scope="col">Capital</th>
-                <th class="col-5 text-center" scope="col">Updated At</th>
+                <th class="col-2 text-center" scope="col">ID</th>
+                <th class="col-3 text-center" scope="col">Name</th>
+                <th class="col-2 text-center" scope="col">Price</th>
+                <th class="col-2 text-center" scope="col">Capital</th>
+                <th class="col-2 text-center" scope="col">Stock</th>
               </tr>
               </thead>
               <tbody id="product-archive-body"></tbody>
