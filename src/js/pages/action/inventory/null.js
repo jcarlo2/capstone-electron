@@ -1,5 +1,6 @@
 import {i_null_generate_id, i_null_populate, ip, ipcRenderer, json_var,} from "../../../variable.js";
 import {ajaxDefaultArray, clearTable, multiply, setBorderColorNonDecimal, setRowColor} from "../../../function.js";
+import {saveLog} from "../log/log.js";
 
 export function startInventoryNull(){
     setSearch()
@@ -15,7 +16,7 @@ function setSearch() {
         const filter = $('#inventory-null-filter').text()
         let ajax = undefined
         if (search === '') ajax = ajaxDefaultArray('/api/product/all-merchandise',{'filter': filter})
-        else if (search !== undefined) ajax = ajaxDefaultArray('/api/product/search-merchandise',{'search': search})
+        else if (search !== undefined) ajax = ajaxDefaultArray('/api/product/search-merchandise',{'search': search,'filter':filter})
         if(ajax !== undefined) ajax.then((response)=> populateProductList(response))
     }, 1000)
 }
@@ -58,7 +59,8 @@ function setSave() {
             ipcRenderer.removeAllListeners('nullResponse')
             ipcRenderer.on('nullResponse',(e,num)=> {
                 if(num === 0) {
-                    makeReport()
+                    const id = makeReport()
+                    saveLog('Inventory Void', 'Adding Inventory Void Report: ' + id)
                     saveReport()
                 }
             })
@@ -193,7 +195,7 @@ function addToTable(quantity,data,table) {
         'totalAmount': multiply(quantity,data['price']),
         'capital': data['capital'],
         'reportId': '',
-        'reason': 'Exp/Dmg',
+        'reason': $('#inventory-null-reason').text(),
         'link': '',
     }
     setTotal()
@@ -269,6 +271,7 @@ function makeReport() {
         'isValid': '1',
         'reason': 'Default'
     }
+    return id
 }
 
 function saveReport() {
@@ -306,3 +309,11 @@ function setItem() {
         table[i]['reportId'] = id
     }
 }
+
+$('#inventory-null-reason-1').on('click',()=> {
+    $('#inventory-null-reason').text('Expired')
+})
+
+$('#inventory-null-reason-2').on('click',()=> {
+    $('#inventory-null-reason').text('Damaged')
+})

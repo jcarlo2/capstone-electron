@@ -1,0 +1,60 @@
+<div class="d-flex flex-column h-100">
+    <div class="d-flex justify-content-between">
+        <ul class="index-z bg-light justify-content-start nav-tabs nav border-bottom border-dark border-1 mb-2">
+            <li class="nav-item"><a id="generate-tab-sales" class="nav-link active text-dark bg-success bg-opacity-75" href="#">Sales</a></li>
+            <li class="nav-item"><a id="generate-tab-void" class="nav-link text-dark bg-warning bg-opacity-25" href="#">Void</a></li>
+            <li class="nav-item"><a id="generate-tab-delivery" class="nav-link text-dark bg-info bg-opacity-25" href="#">Delivery</a></li>
+        </ul>
+        <div class="d-flex me-2 align-items-center">
+            <input id="generate-export" class="btn btn-success btn-sm" disabled type="button" value="Export">
+        </div>
+    </div>
+    <div id="generate-tab-sales-body" class="d-flex flex-column">
+        <table class="table table-success table-striped table-hover mb-0 w-100">
+            <thead>
+            <tr class="d-flex">
+                <th class="col-1 text-start" scope="col">#</th>
+                <th class="col-3 text-start" scope="col">Name</th>
+                <th class="col-1 text-center" scope="col">Quantity</th>
+                <th class="col-1 text-center" scope="col">Price</th>
+                <th class="col-2 text-center" scope="col">Total Sales</th>
+                <th class="col-2 text-center" scope="col">Total Capital</th>
+                <th class="col-2 text-center" scope="col">Total Profit</th>
+            </tr>
+            </thead>
+            <tbody id="generate-right-transaction-body"></tbody>
+        </table>
+    </div>
+    <div id="generate-tab-void-body" class="d-flex flex-column d-none">
+        <table class="table table-warning table-striped table-hover mb-0 w-100">
+            <thead>
+            <tr class="d-flex">
+                <th class="col-1" scope="col">#</th>
+                <th class="col-2 text-start" scope="col">ID</th>
+                <th class="col-3 text-start" scope="col">Name</th>
+                <th class="col-2 text-center" scope="col">Quantity</th>
+                <th class="col-2 text-center" scope="col">Capital</th>
+                <th class="col-2 text-center" scope="col">Total Loss</th>
+            </tr>
+            </thead>
+            <tbody id="generate-right-void-body"></tbody>
+        </table>
+    </div>
+    <div id="generate-tab-delivery-body" class="d-flex flex-column d-none">
+        <div id="generate-chart-delivery"></div>
+        <table class="table table-info table-striped table-hover mb-0 w-100">
+            <thead>
+            <tr class="d-flex">
+                <th class="col-1" scope="col">#</th>
+                <th class="col-2 text-start" scope="col">Id</th>
+                <th class="col-3 text-start" scope="col">Name</th>
+                <th class="col-2 text-center" scope="col">Quantity</th>
+                <th class="col-2 text-center" scope="col">Discount</th>
+                <th class="col-2 text-center" scope="col">Total Cost</th>
+            </tr>
+            </thead>
+            <tbody id="generate-right-delivery-body"></tbody>
+        </table>
+    </div>
+</div>
+<script type="module" defer src="src/js/pages/action/report/generate.js"></script>

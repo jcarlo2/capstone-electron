@@ -1,0 +1,91 @@
+<div class="d-flex flex-column h-100 w-100">
+    <div class="d-flex flex-column p-2 align-items-center">
+        <div class="d-flex flex-column ">
+            <div class="d-flex mb-2">
+                <label class="me-2">
+                    <input id="generate-main-start" type="date" class="form-control-sm">
+                </label>
+                <p class="pt-1 h6 fw-bold">Start</p>
+            </div>
+            <div class="d-flex mb-2 ">
+                <label class="me-2">
+                    <input id="generate-main-end" type="date" class="form-control-sm">
+                </label>
+                <p class="pt-1 h6 fw-bold">End</p>
+            </div>
+            <div class="d-flex justify-content-center w-100">
+                <input id="generate-main-show" disabled type="button" value="Show" class="btn btn-warning">
+            </div>
+        </div>
+    </div>
+    <div class="d-flex flex-column w-100 h-100">
+        <div class="d-flex flex-column">
+            <h5 class="ps-2">Total Profit</h5>
+            <table id="generate-left-gain" class="table table-success table-hover mb-0 w-100">
+                <thead>
+                <tr class="d-flex">
+                    <th class="col-3 text-start" scope="col">Total Sales</th>
+                    <th class="col-1 text-start" scope="col"></th>
+                    <th class="col-3 text-start" scope="col">Total Capital</th>
+                    <th class="col-1 text-start" scope="col"></th>
+                    <th class="col-4 text-start" scope="col">Total Profit</th>
+                </tr>
+                </thead>
+                <tbody id="generate-left-gain-body">
+                <tr class="d-flex">
+                    <th id="valid-total-sales" class="col-3 text-start" scope="col">&#8369; 0</th>
+                    <th class="col-1" scope="col"><i class="fa-solid fa-minus"></i></th>
+                    <th id="valid-total-capital" class="col-3 text-start" scope="col">&#8369; 0</th>
+                    <th class="col-1" scope="col"><i class="fa-solid fa-equals"></i></th>
+                    <th id="valid-total-profit" class="col-4 text-start" scope="col">&#8369; 0</th>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <hr>
+        <div class="d-flex flex-column">
+            <h5 class="ps-2">Total Net Income</h5>
+            <table id="generate-left-total" class="table table-primary table-hover mb-0">
+                <thead>
+                <tr class="d-flex">
+                    <th class="col-3 text-start" scope="col">Total Profit</th>
+                    <th class="col-1 text-start" scope="col"></th>
+                    <th class="col-3 text-start" scope="col">Total Loss (Void)</th>
+                    <th class="col-1 text-start" scope="col"></th>
+                    <th class="col-4 text-start" scope="col">Total Amount</th>
+                </tr>
+                </thead>
+                <tbody id="generate-left-total-body">
+                <tr class="d-flex">
+                    <th class="col-3 text-start" id="summary-total-sales">&#8369; 0</th>
+                    <th class="col-1 text-start"><i class="fa-solid fa-minus"></i></th>
+                    <th class="col-3 text-start" id="summary-total-loss">&#8369; 0</th>
+                    <th class="col-1 text-start"><i class="fa-solid fa-equals"></i></th>
+                    <th class="col-4 text-start" id="summary-total-amount">&#8369; 0</th>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <hr>
+        <div class="d-flex flex-column mb-3">
+            <h5 title="Delivery that was recorded because of Return Transaction are not included." class="ps-2">
+                Delivery
+                <i class="fa fa-question-circle fa-xs text-primary" aria-hidden="true"></i>
+                </h5>
+            <table id="generate-left-delivery" class="table table-info table-hover mb-0">
+                <thead>
+                <tr class="d-flex">
+                    <th class="text-start col-6" scope="col">Total Quantity</th>
+                    <th class="text-start col-6" scope="col">Total Cost</th>
+                </tr>
+                </thead>
+                <tbody id="generate-left-delivery-body">
+                <tr class="d-flex">
+                    <th id="generate-left-delivery-quantity" class="text-start col-6">0</th>
+                    <th id="generate-left-delivery-cost" class="text-start col-6">&#8369; 0</th>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

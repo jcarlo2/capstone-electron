@@ -1,6 +1,15 @@
-import {ip, ipcRenderer, json_var, t_ret_new_total, t_ret_populate} from "../../../variable.js";
-import {ajaxDefaultArray, ajaxUrl, clearIntervals, divide, getDate, multiply, subtract} from "../../../function.js";
+import {ip, ipcRenderer, json_var, t_ret_date, t_ret_new_total, t_ret_populate} from "../../../variable.js";
+import {
+    ajaxDefaultArray,
+    ajaxPostStringify,
+    ajaxUrl,
+    clearIntervals,
+    divide,
+    multiply,
+    subtract
+} from "../../../function.js";
 import {returnChangeItem} from "./add.js";
+import {saveLog} from "../log/log.js";
 
 export function startReturn() {
     t_ret_populate.intervalId = setInterval(()=> {
@@ -179,7 +188,12 @@ function setHeaderOfReturnPayment() {
     $('#return-pay-change').val(change)
     $('#return-pay-modal-id').text('Ref No: ' + $('#right-return-new-id').val())
     $('#return-pay-modal-user').text('Cashier: ' + $('#main-user-name').text())
-    $('#return-pay-modal-date').text('Date: ' + getDate())
+    t_ret_date.intervalId = setInterval(()=> {
+        ajaxUrl('/api/date/get-date')
+            .then((response)=> {
+                $('#return-pay-modal-date').text('Date: ' + response)
+            })
+    },1000)
 }
 
 function setTableBodyOfReturnPayment() {
@@ -318,9 +332,10 @@ $('#transaction-return-modal-confirm').on('click', ()=> {
 
 $('#transaction-return-modal-refund').on('click',()=> {
     const table = json_var.t_ret_table_null
-    let nullFlag = checkReasons(table,'Exp/Dmg')
+    let nullFlag = checkReasons(table,'Expired') || checkReasons(table,'Damaged')
     let deliveryFlag = checkReasons(table,'Change')
     if(table.length > 0) {
+        const id = $('#right-return-new-id').val()
         makeTransactionReport(true)
         if(nullFlag) makeNullReport(true)
         if(deliveryFlag) makeDeliveryReport(true)
@@ -328,10 +343,8 @@ $('#transaction-return-modal-refund').on('click',()=> {
         const report = $('#right-return-new-id').val()
         const change = $('#return-pay-change').val()
         ipcRenderer.send('showMessage','Return success', report + ' successfully saved.\nRefund: ' + change)
-        ipcRenderer.removeAllListeners('show')
-        ipcRenderer.on('show',(e,num)=> {
-            if(num === 0) clearField()
-        })
+        clearField()
+        saveLog('Transaction Return','Refund item - Return Transaction: ' + id)
     } else ipcRenderer.send('showError','Return item', 'Invalid: no items to return')
 })
 
@@ -369,30 +382,13 @@ function makeTransactionReport(isRefund) {
         'credit': parseFloat(credit) + parseFloat(excess),
     }
     setTransactionItems()
-    if(isRefund) saveTransactionReport()
-}
 
-function saveTransactionReport() {
-    $.ajax({
-        url: ip.url + '/api/transaction/save-report',
-        contentType: 'application/json',
-        dataType: 'json',
-        type: 'POST',
-        data: JSON.stringify(json_var.t_add_report[0]),
-        success: () => {
-            saveTransactionReportItem()
-        }
-    })
-}
-
-function saveTransactionReportItem() {
-    $.ajax({
-        url: ip.url + '/api/transaction/save-return-report-item',
-        contentType: 'application/json',
-        dataType: 'json',
-        type: 'POST',
-        data: JSON.stringify(json_var.t_ret_table)
-    })
+    if(isRefund) {
+        $.when(
+            ajaxPostStringify('/api/transaction/save-report',json_var.t_add_report[0]),
+            ajaxPostStringify('/api/transaction/save-report-item',json_var.t_ret_table),
+        )
+    }
 }
 
 function setTransactionItems() {
@@ -412,7 +408,7 @@ function setNullItems(id) {
 
 function saveNullItems() {
     $.ajax({
-        url: ip.url + '/api/inventory/save-return-report-item',
+        url: ip.url + '/api/inventory/save-null-item',
         contentType: 'application/json',
         type: 'POST',
         dataTYpe: 'json',
@@ -496,10 +492,12 @@ function filterNullItemsToDeliveryItems(id) {
 }
 
 function clearField() {
-    setTimeout(()=> {
-        json_var.t_ret_table_null = []
-        json_var.t_ret_table = []
-    },1000)
+    json_var.t_ret_table_null = []
+    json_var.t_ret_table = []
+    // setTimeout(()=> {
+    //     json_var.t_ret_table_null = []
+    //     json_var.t_ret_table = []
+    // },1000)
     $('#transaction-return-item-body').empty()
     $('#right-return-new-id').val('')
     $('#right-return-id').val('')
@@ -588,7 +586,14 @@ $('#return-item-drop-1').on('click',()=> {
 })
 
 $('#return-item-drop-2').on('click',()=> {
-    $('#return-item-drop').text('Exp/Dmg')
+    $('#return-item-drop').text('Expired')
+    $('#return-item-main').removeClass('d-none')
+    $('#return-item-ret-1').focus()
+    resetReturnModal()
+})
+
+$('#return-item-drop-4').on('click',()=> {
+    $('#return-item-drop').text('Damaged')
     $('#return-item-main').removeClass('d-none')
     $('#return-item-ret-1').focus()
     resetReturnModal()
@@ -604,6 +609,7 @@ $('#return-item-drop-3').on('click',()=> {
 $('#transaction-return-modal').on('hidden.bs.modal',()=> {
     $('#transaction-return-hidden').removeClass()
     $('#transaction-return-quantity').removeClass()
+    clearInterval(t_ret_date.intervalId)
 })
 
 function resetReturnModal() {

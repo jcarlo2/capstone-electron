@@ -1,0 +1,11 @@
+.set-report {
+    height: 87vh;
+}
+
+.report-main-left {
+    width: 55%;
+}
+
+.index-z {
+    z-index: 1;
+}

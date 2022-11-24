@@ -6,7 +6,8 @@ import {startTransactionAdd} from "./pages/action/transaction/add.js";
 import {startInventoryAdd} from "./pages/action/inventory/add.js";
 import {setInventoryButtons} from "./pages/inventory.js";
 import {clearIntervals} from "./function.js";
-import {startGenerate} from "./pages/generate.js";
+import {startGenerate} from "./pages/action/report/generate.js";
+import {startLog} from "./pages/action/log/log.js";
 
 
 $().ready(() => {
@@ -20,10 +21,11 @@ $().ready(() => {
         $('#main-transaction').click()
     },500)
 
+    $('#main-transaction').off('click')
     $('#main-transaction').on('click',()=> {
         $('#main-transaction').prop('disabled',true)
         $('#main-inventory').prop('disabled',false)
-        $('#main-generate').prop('disabled',false)
+        $('#main-report').prop('disabled',false)
         $('#main-log').prop('disabled',false)
         main.addClass('d-none')
         spinner.removeClass('d-none')
@@ -39,10 +41,11 @@ $().ready(() => {
         },1000)
     })
 
+    $('#main-inventory').off('click')
     $('#main-inventory').on('click',()=> {
         $('#main-transaction').prop('disabled',false)
         $('#main-inventory').prop('disabled',true)
-        $('#main-generate').prop('disabled',false)
+        $('#main-report').prop('disabled',false)
         $('#main-log').prop('disabled',false)
         main.addClass('d-none')
         spinner.removeClass('d-none')
@@ -59,31 +62,39 @@ $().ready(() => {
         clearIntervals()
     })
 
-    $('#main-generate').on('click',()=> {
+    $('#main-report').off('click')
+    $('#main-report').on('click',()=> {
         $('#main-transaction').prop('disabled',false)
         $('#main-inventory').prop('disabled',false)
-        $('#main-generate').prop('disabled',true)
+        $('#main-report').prop('disabled',true)
         $('#main-log').prop('disabled',false)
         main.addClass('d-none')
         spinner.removeClass('d-none')
-        $('#main-section').load('src/pages/generate.html')
+        $('#main-section').load('src/pages/report.html')
         clearIntervals()
         setTimeout(()=> {
-            $('#generate-main-left').load('src/pages/generate/generate-left.html')
-            $('#generate-main-right').load('src/pages/generate/generate-right.html')
-            startGenerate()
+            $('#report-main-left').load('src/pages/report/generate-left.html')
+            $('#report-main-right').load('src/pages/report/generate-right.html')
             spinner.addClass('d-none')
             main.removeClass('d-none')
+            startGenerate()
         },1000)
     })
-
+    $('#main-log').off('click')
     $('#main-log').on('click',()=> {
         $('#main-transaction').prop('disabled',false)
         $('#main-inventory').prop('disabled',false)
-        $('#main-generate').prop('disabled',false)
+        $('#main-report').prop('disabled',false)
         $('#main-log').prop('disabled',true)
         $('#main-section').load('src/pages/log.html')
         clearIntervals()
+        startLog()
+    })
+
+    $('#main-setting').off('click')
+    $('#main-setting').on('click',()=> {
+        ipcRenderer.send('setting')
+        $('#setting-section').load('src/pages/setting/connection.html')
     })
 })
 

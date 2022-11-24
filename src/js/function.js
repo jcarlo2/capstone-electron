@@ -4,12 +4,12 @@ import {
     i_add_populate,
     i_history_populate,
     i_null_generate_id,
-    i_null_populate, i_product_discount, ip,
-    json_var,
-    stockInfo,
+    i_null_populate, i_product_archive, i_product_discount, ip,
+    json_var, log_populate,
+    stockInfo, t_add_date, t_add_dropdown,
     t_add_populate,
     t_add_report_id,
-    t_history_populate,
+    t_history_populate, t_ret_date,
     t_ret_new_total,
     t_ret_populate
 } from "./variable.js";
@@ -47,9 +47,12 @@ export function clearTable() {
 
 export function clearIntervals() {
     clearInterval(t_add_populate.intervalId)
+    clearInterval(t_add_date.intervalId)
     clearInterval(t_add_report_id.intervalId)
+    clearInterval(t_add_dropdown.intervalId)
     clearInterval(t_ret_populate.intervalId)
     clearInterval(t_ret_new_total.intervalId)
+    clearInterval(t_ret_date.intervalId)
     clearInterval(t_history_populate.intervalId)
     clearInterval(i_add_populate.intervalId)
     clearInterval(i_add_input.intervalId)
@@ -58,6 +61,8 @@ export function clearIntervals() {
     clearInterval(i_null_generate_id.intervalId)
     clearInterval(i_history_populate.intervalId)
     clearInterval(i_product_discount.intervalId)
+    clearInterval(i_product_archive.intervalId)
+    clearInterval(log_populate.intervalId)
 }
 
 export function getDate() {

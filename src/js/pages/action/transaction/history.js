@@ -1,5 +1,6 @@
 import {ip, ipcRenderer, t_history_populate} from "../../../variable.js";
 import {ajaxDefaultArray, ajaxUrl, divide, multiply, subtract} from "../../../function.js";
+import {saveLog} from "../log/log.js";
 
 export function startHistory() {
     setOption()
@@ -111,11 +112,8 @@ export function setDelete() {
                     if(num === 0) {
                         archiveReport(id)
                         clear()
+                        saveLog('Transaction Archive', 'Archived Transaction Report: ' + id)
                     }
-                    // else if(num === 1) {
-                    //     archiveAllReport(id)
-                    //     clear()
-                    // }
                 })
             }
         })
@@ -131,18 +129,6 @@ function archiveReport(id) {
         success: (response)=> {
             if(response) ipcRenderer.send('showMessage','Success', id + ' is archived')
             else ipcRenderer.send('showMessage','Error: ' + id, 'invalid stock count')
-        }
-    })
-}
-
-function archiveAllReport(id) {
-    $.ajax({
-        url: ip.url + '/api/transaction/archive-all',
-        type: 'POST',
-        contentType: 'application/json',
-        data:{'id': id},
-        success: ()=> {
-            ipcRenderer.send('showMessage','Success', 'All report is archived')
         }
     })
 }

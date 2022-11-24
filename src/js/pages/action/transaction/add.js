@@ -1,15 +1,23 @@
-import {ip, ipcRenderer, json_var, t_add_dropdown, t_add_populate, t_add_report_id,} from "../../../variable.js";
+import {
+    ip,
+    ipcRenderer,
+    json_var,
+    t_add_date,
+    t_add_dropdown,
+    t_add_populate,
+    t_add_report_id,
+} from "../../../variable.js";
 import {
     add,
     ajaxDefaultArray,
-    ajaxPostStringify,
+    ajaxPostStringify, ajaxUrl,
     divide,
-    getDate,
     multiply,
     setRowColor,
     subtract
 } from "../../../function.js";
 import {invalidateReport} from "./return.js";
+import {saveLog} from "../log/log.js";
 
 export function startTransactionAdd(){
     startSearch()
@@ -86,7 +94,7 @@ function startSearch() {
         const filter = $('#transaction-add-filter').text()
         let ajax = undefined
         if (search === '') ajax = ajaxDefaultArray('/api/product/all-merchandise',{'filter':filter})
-        else if (search !== undefined) ajax = ajaxDefaultArray('/api/product/search-merchandise',{'search':search})
+        else if (search !== undefined) ajax = ajaxDefaultArray('/api/product/search-merchandise',{'search':search,'filter':filter})
         if(ajax !== undefined) ajax.then((response)=> populateProductList(response))
     }, 1000)
 }
@@ -367,10 +375,7 @@ $('#add-pay-modal').on('hidden.bs.modal',()=> {
     $('#add-pay-payment').val('')
     $('#add-pay-change').val('')
     paymentChangeBolder(-1)
-})
-
-$('#add-pay-modal').on('shown.bs.modal',()=> {
-    $('#add-pay-payment').focus()
+    clearInterval(t_add_date.intervalId)
 })
 
 $('#transaction-add-modal').on('shown.bs.modal',()=> {
@@ -381,6 +386,10 @@ $('#transaction-left-list-edit').on('shown.bs.modal',()=> {
     $('#transaction-left-edit-quantity').focus()
 })
 
+$('#add-pay-modal').on('shown.bs.modal',()=> {
+    $('#add-pay-payment').focus()
+})
+
 $('#add-pay-modal').on('show.bs.modal',()=> {
     let total = $('#transaction-add-left-total').text().substring(9)
     const id = $('#transaction-left-add-report').text().substring(4)
@@ -389,9 +398,12 @@ $('#add-pay-modal').on('show.bs.modal',()=> {
     $('#add-pay-modal-total').text('Total: \u20B1 ' + total)
     $('#add-pay-modal-id').text('Ref No: ' + id)
     $('#add-pay-modal-user').text('Cashier: ' + user)
-    $('#add-pay-modal-date').text('Date: ' + getDate())
     paymentListener()
     populateAddPayList()
+    t_add_date.intervalId = setInterval(()=> {
+        ajaxUrl('/api/date/get-date')
+            .then((response)=> $('#add-pay-modal-date').text('Date: ' + response))
+    },1000)
 })
 
 function populateAddPayList() {
@@ -442,8 +454,10 @@ function paymentChangeBolder(change) {
 function setPaymentConfirm() {
     $('#transaction-add-modal-confirm').off('click')
     $('#transaction-add-modal-confirm').on('click',()=> {
+        const id = $('#transaction-left-add-report').text().substring(4)
         makeReport(0)
         saveReportItem(false,undefined,undefined,undefined,undefined)
+        saveLog('Transaction Add', 'Adding Transaction Report ' + id)
     })
 }
 
@@ -464,8 +478,8 @@ function saveReportItem(isReturn,n_item,n_report,d_item,d_report) {
     $.when(
         ajaxPostStringify('/api/transaction/save-report-item', json_var.t_add_report_item),
         ajaxPostStringify('/api/transaction/save-report',json_var.t_add_report[0])
-    ).then((r1)=> {
-        if(r1[0]) {
+    ).then((response)=> {
+        if(response[0]) {
             const id = $('#transaction-left-add-report').text().substring(4)
             if(isReturn) saveReturnTransaction(n_item,n_report,d_item,d_report)
             ipcRenderer.send('showMessage', 'Transaction saved', id + ' is saved successfully')
@@ -478,7 +492,7 @@ function saveReturnTransaction(n_item,n_report,d_item,d_report) {
     if(n_item.length > 0) {
         $.when(
             ajaxPostStringify('/api/inventory/save-report-null',n_report),
-            ajaxPostStringify('/api/inventory/save-return-report-item',n_item)
+            ajaxPostStringify('/api/inventory/save-report-item',n_item)
         )
     }
     if(d_item.length > 0) {
@@ -536,6 +550,7 @@ function assignTableValue(t_item,n_item) {
 function setSaveReportButton(n_item,n_report,d_item,d_report,oldId,credit) {
     $('#transaction-add-modal-confirm').off('click')
     $('#transaction-add-modal-confirm').on('click',()=> {
+        const id = $('#transaction-left-add-report').text().substring(4)
         let total = subtract(credit,$('#add-pay-total').val().substring(2))
         total = total > 0 ? total : 0
         makeReport(total)
@@ -543,6 +558,7 @@ function setSaveReportButton(n_item,n_report,d_item,d_report,oldId,credit) {
         saveReportItem(true,n_item,n_report,d_item,d_report)
         invalidateReport(oldId)
         setTabButtons(false)
+        saveLog('Transaction Return', 'Changed item - Return transaction: ' + id)
     })
 }
 
@@ -565,7 +581,7 @@ function setFieldFromReturn(id,total,credit) {
 function setTabButtons(flag) {
     $('#main-transaction').prop('disabled',true)
     $('#main-inventory').prop('disabled',flag)
-    $('#main-generate').prop('disabled',flag)
+    $('#main-report').prop('disabled',flag)
     $('#main-log').prop('disabled',flag)
     $('#btn-transaction-return').prop('disabled',true)
     $('#btn-transaction-history').prop('disabled',flag)

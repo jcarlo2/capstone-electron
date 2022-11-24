@@ -1,5 +1,6 @@
 import {i_add_generate_id, i_add_input, i_add_populate, ip, ipcRenderer, json_var,} from "../../../variable.js";
 import {ajaxDefaultArray, divide, multiply, setRowColor, subtract} from "../../../function.js";
+import {saveLog} from "../log/log.js";
 
 export function startInventoryAdd() {
     setSearch()
@@ -74,7 +75,11 @@ function setInventoryAddSave() {
             ipcRenderer.send('delivery',$('#inventory-add-report').text().substring(4))
             ipcRenderer.removeAllListeners('deliveryResponse')
             ipcRenderer.on('deliveryResponse',(e,num)=> {
-                if(num === 0) makeReport()
+                if(num === 0) {
+                    const id = $('#inventory-add-report').text().substring(4)
+                    saveLog('Inventory Delivery', 'Adding Delivery Report: ' + id)
+                    makeReport()
+                }
             })
         })
         if($('#inventory-add-pay').length === 1) clearInterval(interval)
@@ -93,7 +98,7 @@ function setSearch() {
         const filter = $('#inventory-add-filter').text()
         let ajax = undefined
         if (search === '') ajax = ajaxDefaultArray('/api/product/all-merchandise',{'filter': filter})
-        else if (search !== undefined) ajax = ajaxDefaultArray('/api/product/search-merchandise',{'search': search})
+        else if (search !== undefined) ajax = ajaxDefaultArray('/api/product/search-merchandise',{'search': search,'filter':filter})
         if(ajax !== undefined) ajax.then((response)=> populateProductList(response))
     }, 1000)
 }

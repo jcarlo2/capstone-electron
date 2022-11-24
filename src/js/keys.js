@@ -7,7 +7,7 @@ $().ready(()=> {
         else if(e.code === 'Enter') enter()
         else if(e.altKey && e.ctrlKey && e.key === '1' && $('#main-transaction').prop('disabled') === false) $('#main-transaction').click()
         else if(e.altKey && e.ctrlKey && e.key === '2' && $('#main-inventory').prop('disabled') === false) $('#main-inventory').click()
-        else if(e.altKey && e.ctrlKey && e.key === '3' && $('#main-generate').prop('disabled') === false) $('#main-generate').click()
+        else if(e.altKey && e.ctrlKey && e.key === '3' && $('#main-report').prop('disabled') === false) $('#main-report').click()
         else if(e.altKey && e.ctrlKey && e.key === '4' && $('#main-log').prop('disabled') === false) $('#main-log').click()
         else if(e.altKey && e.ctrlKey && e.key === '5') console.log('This is for settings')
         else if(e.altKey && e.key === '1') altKeyAndOne()

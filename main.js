@@ -1,52 +1,55 @@
 const electron = require('electron')
 const path = require('path')
-const express = require("express");
-const kill = require("tree-kill");
-const exec = require('child_process').exec;
-const port = express()
-port.listen(3000)
 const {app, BrowserWindow, Menu, ipcMain, dialog} = electron
+const lock = app.requestSingleInstanceLock()
 
-let logInWindow;
-let mainWindow;
-let serverProcess;
+let logInWindow
+let mainWindow
+let settingWindow
+
 let defaultResponse
 let returnResponse
 let deliveryResponse
 let nullResponse
 let inventoryDelete
 let backToTransactionReturn
-let show
 let buttonArray
 
-app.on('ready',()=> {
-    logInWindow = new BrowserWindow({
-        resizable: false,
-        webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false,
-        }
-    })
-
-    const mainMenu = Menu.buildFromTemplate([])
-    Menu.setApplicationMenu(mainMenu)
-
-    logInWindow.loadFile('index.html')
-    logInWindow.maximize()
-    logInWindow.on('closed', ()=> {
-        // kill(serverProcess.pid);
-        logInWindow = null
-    })
-})
-
 app.on('window-all-closed', () => {
-    // kill(serverProcess.pid);
     app.quit()
 })
 
-function startServer(){
-    let server = `${path.join(app.getAppPath(), 'src/content/java/capstone-backend.jar')}`;
-    serverProcess = exec('java -jar '+ server, ()=> {})
+if(!lock) app.quit()
+else {
+    app.on('second-instance', () => {
+        if (logInWindow && logInWindow.isVisible()) {
+            if (logInWindow.isMinimized()) logInWindow.restore()
+            logInWindow.focus()
+        }else if(mainWindow && mainWindow.isVisible()) {
+            if (mainWindow.isMinimized()) mainWindow.restore()
+            mainWindow.focus()
+        }
+    })
+
+    app.on('ready',()=> {
+        logInWindow = new BrowserWindow({
+            resizable: false,
+            webPreferences: {
+                nodeIntegration: true,
+                contextIsolation: false,
+            },
+            icon: 'src/image/smile.ico'
+        })
+
+        const mainMenu = Menu.buildFromTemplate([])
+        Menu.setApplicationMenu(mainMenu)
+        logInWindow.loadFile('index.html').then(()=>{
+            logInWindow.maximize()
+            logInWindow.on('closed', ()=> {
+                logInWindow = null
+            })
+        })
+    })
 }
 
 function createMainWindow(filePath) {
@@ -56,19 +59,53 @@ function createMainWindow(filePath) {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: true,
             contextIsolation: false,
-        }
+        },
+         icon: 'src/image/smile.ico'
     })
 
-    mainWindow.loadFile(filePath)
-
-    mainWindow.on('closed',()=> {
-        // kill(serverProcess.pid);
-        app.quit()
-        mainWindow = null
+    mainWindow.loadFile(filePath).then(()=> {
+        mainWindow.maximize()
+        mainWindow.on('closed',()=> {
+            app.quit()
+            mainWindow = null
+        })
     })
-
-    mainWindow.maximize()
 }
+
+function createSettingWindow(filePath) {
+    settingWindow = new BrowserWindow({
+        resizable: false,
+        width: 500,
+        height: 500,
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
+            nodeIntegration: true,
+            contextIsolation: false,
+        },
+        icon: 'src/image/smile.ico'
+    })
+
+    settingWindow.loadFile(filePath).then(()=> {
+
+        settingWindow.on('close',(event)=> {
+            event.preventDefault()
+            settingWindow.hide()
+        })
+        settingWindow.on('closed',(event)=> {
+            event.preventDefault()
+        })
+    })
+}
+
+ipcMain.on('setting',()=> {
+    if(settingWindow === undefined) {
+        createSettingWindow('setting.html')
+        settingWindow.webContents.openDevTools()
+    }
+    else if(settingWindow && settingWindow.isVisible()) settingWindow.hide()
+    else settingWindow.show()
+})
+
 
 ipcMain.on('login:verify',(e,is_verified,id)=> {
     if(is_verified && mainWindow === undefined) {
@@ -86,11 +123,10 @@ ipcMain.on('showError',(e,title,message)=> {
 })
 
 ipcMain.on('showMessage',(e,title,message)=> {
-    show = dialog.showMessageBoxSync(mainWindow,{
+    dialog.showMessageBoxSync(mainWindow,{
         title: title,
         message: message,
         type: 'none'})
-    mainWindow.webContents.send('show', show)
 })
 
 ipcMain.on('return',(e,id)=> {
@@ -105,14 +141,14 @@ ipcMain.on('return',(e,id)=> {
     mainWindow.webContents.send('returnResponse', returnResponse)
 })
 
-ipcMain.on('default',(e,title,message,button1, button2)=> {
+ipcMain.on('default',(e,title,message,button)=> {
     defaultResponse = dialog.showMessageBoxSync(mainWindow,{
         title: title,
         message: message,
         type: 'none',
         noLink: true,
-        defaultId: 1,
-        buttons:[button1,button2]
+        defaultId: button.length - 1,
+        buttons:button
     })
     mainWindow.webContents.send('default', defaultResponse)
 })
@@ -167,7 +203,7 @@ ipcMain.on('inventoryDelete',(e,id,link,flag)=> {
     mainWindow.webContents.send('inventoryDeleteResponse', inventoryDelete)
 })
 
-ipcMain.on('backToTransactionReturn',(e)=> {
+ipcMain.on('backToTransactionReturn',()=> {
     backToTransactionReturn = dialog.showMessageBoxSync(mainWindow,{
         title: 'Back',
         message: 'Route to Transaction Return Tab',

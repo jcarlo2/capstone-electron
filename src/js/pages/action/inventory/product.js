@@ -7,6 +7,7 @@ import {
     ajaxUrl,
     setRowColor
 } from "../../../function.js";
+import {saveLog} from "../log/log.js";
 
 export function startInventoryProduct() {
     setSearch()
@@ -16,11 +17,11 @@ export function startInventoryProduct() {
     setProductHistoryModal()
     setAddButton()
     setUpdateButton()
-    setArchiveButton()
-    setProductArchive()
-    setProductArchiveTable()
+    setDeactivateProductButton()
+    setInactiveProductButtonToShowModal()
+    setInactivateProductTable()
 }
-function setProductArchive() {
+function setInactiveProductButtonToShowModal() {
     const interval = setInterval(()=>{
         $('#inventory-product-archive').off('click')
         $('#inventory-product-archive').on('click',()=> {
@@ -30,44 +31,50 @@ function setProductArchive() {
     },1000)
 }
 
-function setProductArchiveTable() {
+function setInactivateProductTable() {
     i_product_archive.intervalId = setInterval(()=> {
         ajaxUrl('/api/product/product-archive-list')
             .then((response)=> {
-                populateArchiveProductTable(response)
+                populateInactiveProductTable(response)
             })
     },1000)
 }
 
-function populateArchiveProductTable(data) {
+function populateInactiveProductTable(data) {
     $('#product-archive-body').empty()
     for(let i in data) {
-        const row = `<tr id="product-archive-`+ i +`" class="d-flex">
-                        <th class="col-1">`+ add(i,1) +`</th>
-                        <th class="col-2 text-center">`+ data[i]['id'] +`</th>
-                        <th class="col-3 text-center">`+ data[i]['name'] +`</th>
-                        <th class="col-2 text-center">&#8369; `+ data[i]['price'] +`</th>
-                        <th class="col-2 text-center">&#8369; `+ data[i]['capital'] +`</th>
-                        <th class="col-2 text-center">`+ data[i]['quantityPerPieces'] +`</th>
+        const row = `<tr id="product-archive-${i}" class="d-flex">
+                        <th class="col-1">${add(i,1).toLocaleString()}</th>
+                        <th class="col-2 text-center">${data[i]['id']}</th>
+                        <th class="col-3 text-center">${data[i]['name']}</th>
+                        <th class="col-2 text-center">&#8369; ${data[i]['price'].toLocaleString()}</th>
+                        <th class="col-2 text-center">&#8369; ${data[i]['capital'].toLocaleString()}</th>
+                        <th class="col-2 text-center">${data[i]['quantityPerPieces'].toLocaleString()}</th>
                     </tr>`
         $('#product-archive-body').append(row)
-        setClickToUnarchived($('#product-archive-'+i),data[i])
+        setClickToActivateProduct($('#product-archive-'+i),data[i])
     }
 }
 
-function setClickToUnarchived(row,data) {
+function setClickToActivateProduct(row,data) {
     row.off('click')
     row.on('click',()=> {
-        ipcRenderer.send('buttonArray','Unarchive Product', 'Unarchive product: ' + data['id'] + '.\nRetain or start with zero stock?',['Retain','Zero','Cancel'],2)
+        const id = data['id']
+        ipcRenderer.send('buttonArray','Activate Product', `Activate product: ${id}.\nRetain or start with zero stock?`,['Retain','Zero','Cancel'],2)
         ipcRenderer.removeAllListeners('buttonArray')
         ipcRenderer.on('buttonArray',(e,num)=> {
-            if(num === 0) ajaxPostNonString('/api/product/unarchived-product',{'id':data['id'],'isZero':false})
-            else if(num === 1) ajaxPostNonString('/api/product/unarchived-product',{'id':data['id'],'isZero':true})
+            if(num === 0) {
+                saveLog('Product Activate', `Changing product ${id} status to active  with original stock`)
+                ajaxPostNonString('/api/product/activate-product',{'id':data['id'],'isZero':false})
+            } else if(num === 1) {
+                saveLog('Product Activate', `Changing product ${id} status to active with zero stock`)
+                ajaxPostNonString('/api/product/activate-product',{'id':data['id'],'isZero':true})
+            }
         })
     })
 }
 
-function setArchiveButton() {
+function setDeactivateProductButton() {
     const interval = setInterval(()=> {
         $('#product-left-archive').off('click')
         $('#product-left-archive').on('click',()=> {
@@ -76,16 +83,17 @@ function setArchiveButton() {
             if(id !== '') {
                 ajaxDefaultArray('/api/product/product-archive',{'id':id})
                     .then(()=> {
-                        ipcRenderer.send('default','Archive Product',id + ' : ' + name,'Archive','Cancel')
+                        ipcRenderer.send('default','Archive Product',`${id} : ${name}`,['Archive','Cancel'])
                         ipcRenderer.removeAllListeners('default')
                         ipcRenderer.on('default',(e,num)=> {
                             if(num === 0) {
-                                ipcRenderer.send('showMessage','Archive Product', id + ' is successfully archived.')
+                                saveLog('Product Archive', `Archived product = ID: ${id} / Name: ${name}`)
+                                ipcRenderer.send('showMessage','Archive Product', `${id} is successfully archived.`)
                                 clear()
                             }
                         })
                     }).catch(()=> {
-                        ipcRenderer.send('showError','Archive Product', 'Failed to archive ' + id + '.\nCheck server connection and try again!')
+                        ipcRenderer.send('showError','Archive Product', `Failed to archive ${id}.\nCheck server connection and try again!`)
                     })
             }
         })
@@ -102,17 +110,19 @@ function setUpdateButton() {
             const name = $('#inventory-product-name').val()
             const price = $('#inventory-product-price').val()
             const capital = $('#inventory-product-capital').val()
-            ipcRenderer.send('default','Product Update',id + ' : ' + name,'Update','Cancel')
+            ipcRenderer.send('default','Product Update',`${id} : ${name}`,['Update','Cancel'])
             ipcRenderer.removeAllListeners('default')
             ipcRenderer.on('default',(e,num)=> {
                 if(num === 0) {
                     const product = makeProductEntity(id,name,price,capital)
                     ajaxPostStringify('/api/product/update-product',product)
                         .then(()=> {
-                            ipcRenderer.send('showMessage','Update Product',id + ' successfully updated.')
+                            saveLog('Product Update',
+                                `Updating product = ID: ${id} / Name: ${name} / Price: \u20B1 ${price} / Capital: ${capital}`)
+                            ipcRenderer.send('showMessage','Update Product',`${id }successfully updated.`)
                             clear()
                         }).fail(()=> {
-                            ipcRenderer.send('showError','Update Product','Error updating product ' + id)
+                            ipcRenderer.send('showError','Update Product',`Error updating product ${id}`)
                         })
                 }
             })
@@ -193,12 +203,11 @@ function setAddDiscount() {
            const name = $('#inventory-product-name').val()
            $('#inventory-discount-add-save').removeClass('d-none')
            $('#inventory-discount-add-archive').addClass('d-none')
+           $('#inventory-discount-add-update').addClass('d-none')
            $('#inventory-discount-add-quantity').removeClass('border-dark')
            $('#inventory-discount-add-quantity').removeClass('border-2')
            $('#inventory-discount-add-quantity').addClass('border-danger')
            $('#inventory-discount-add-quantity').addClass('border-4')
-           $('#inventory-discount-add-quantity').prop('readonly',false)
-           $('#inventory-discount-add-percent').prop('readonly',false)
            $('#inventory-discount-product-id').text(id)
            $('#inventory-discount-product-name').text(name)
            setAddDiscountSave()
@@ -217,7 +226,8 @@ function setAddDiscountSave() {
         if((discount === '' || discount === 0) && (quantity === '' || quantity === 0)) ipcRenderer.send('showError','Add Discount','Invalid: check discount percentage')
         else ajaxPostNonString('/api/product/add-product-discount',{'quantity':quantity,'discount':discount,'id':id})
             .then(()=> {
-                ipcRenderer.send('showMessage','Add Product Discount', id + ': successfully added new discount.')
+                saveLog('Product Discount', `Adding new discount to a product = ID: ${id} / Quantity: ${quantity} / Discount: ${discount} %`)
+                ipcRenderer.send('showMessage','Add Product Discount', `${id}: successfully added new discount.`)
             })
     })
 }
@@ -298,7 +308,7 @@ function setSearch() {
         const filter = $('#inventory-product-filter').text()
         let ajax = undefined
         if (search === '') ajax = ajaxDefaultArray('/api/product/all-merchandise',{'filter': filter})
-        else if (search !== undefined) ajax = ajaxDefaultArray('/api/product/search-merchandise',{'search': search})
+        else if (search !== undefined) ajax = ajaxDefaultArray('/api/product/search-merchandise',{'search': search,'filter':filter})
         if(ajax !== undefined) ajax.then((response)=> populateProductList(response))
     }, 1000)
 }
@@ -308,15 +318,13 @@ function populateProductList(data) {
     list.empty()
     for(let i in data) {
         const id = data[i]['id']
-        const price = data[i]['price']
-        const name = data[i]['name']
         let quantity = parseInt(data[i]['quantityPerPieces'])
-        const row = `<tr id="inventory-product-table-`+ id +`" class="inventory-product-item d-flex">
-                        <th class="col-1" scope="row">`+ add(i,1) +`</th>
-                        <td class="col-2 text-start">`+ id +`</td>
-                        <td class="col-5 text-start">`+ name +`</td>
-                        <td class="col-2 text-start">&#8369; `+ price +`</td>
-                        <td class="col-2 text-start">`+ quantity +`</td>
+        const row = `<tr id="inventory-product-table-${id}" class="inventory-product-item d-flex">
+                        <th class="col-1" scope="row">${add(i,1).toLocaleString()}</th>
+                        <td class="col-2 text-start">${id}</td>
+                        <td class="col-5 text-start">${data[i]['name']}</td>
+                        <td class="col-2 text-start">&#8369; ${data[i]['price']}</td>
+                        <td class="col-2 text-start">${quantity.toLocaleString()}</td>
                     </tr>`
         list.append(row)
         setClick(data[i],$('#inventory-product-table-'+id))
@@ -344,10 +352,10 @@ function setClick(data,row) {
 function populateDiscount(data) {
     $('#inventory-product-discount').empty()
     for(let i in data) {
-        const row = `<tr id="inventory-discount-row-`+ data[i]['quantity'] +`" class="d-flex">
-                        <td class="col-1 ">`+ add(i,1) +`</td>
-                        <td class="col-6 text-center">`+ data[i]['quantity'] +`</td>
-                        <td class="col-5 text-center" >`+ data[i]['discount'] +` %</td>
+        const row = `<tr id="inventory-discount-row-${data[i]['quantity']}" class="d-flex">
+                        <td class="col-1 ">${add(i,1).toLocaleString()}</td>
+                        <td class="col-6 text-center">${data[i]['quantity'].toLocaleString()}</td>
+                        <td class="col-5 text-center" >${data[i]['discount']} %</td>
                     </tr>`
         $('#inventory-product-discount').append(row)
         setClickDiscount($('#inventory-discount-row-'+data[i]['quantity']), data[i])
@@ -358,17 +366,21 @@ function setClickDiscount(row,data) {
     row.off('click')
     row.on('click',()=> {
         const name = $('#inventory-product-name').val()
+        const id = data['id']
+        const quantity = data['quantity']
+        const discount = data['discount']
         $('#inventory-discount-add-quantity').removeClass('border-4')
         $('#inventory-discount-add-quantity').addClass('border-dark')
         $('#inventory-discount-add-quantity').addClass('border-2')
         $('#inventory-discount-add-save').addClass('d-none')
         $('#inventory-discount-add-archive').removeClass('d-none')
-        $('#inventory-discount-add-quantity').prop('readonly',true)
-        $('#inventory-discount-add-percent').prop('readonly',true)
-        $('#inventory-discount-product-id').text(data['id'])
+        $('#inventory-discount-add-update').removeClass('d-none')
+        $('#inventory-discount-product-id').text(id)
         $('#inventory-discount-product-name').text(name)
-        $('#inventory-discount-add-quantity').val(data['quantity'])
-        $('#inventory-discount-add-percent').val(data['discount'])
+        $('#inventory-discount-add-quantity').val(quantity)
+        $('#inventory-discount-add-percent').val(discount)
+        setProductDiscountArchive(id,discount,quantity)
+        setProductDiscountUpdate(id,discount,quantity)
         $('#inventory-history-discount-list').modal('show')
     })
 }
@@ -381,33 +393,60 @@ $('#inventory-history-discount-list').on('hidden.bs.modal',()=> {
     $('#inventory-discount-add-save').off('click')
 })
 
-$('#inventory-discount-add-archive').on('click',()=> {
-    const id = $('#inventory-product-update').val()
-    const discount = $('#inventory-discount-add-percent').val()
-    const quantity = $('#inventory-discount-add-quantity').val()
-    ipcRenderer.send('default','Archive Discount','Do you want to archive ' + id + ' : ' + discount + ' %','Continue','Cancel')
-    ipcRenderer.removeAllListeners('default')
-    ipcRenderer.on('default',(e,num)=> {
-        if(num === 0) {
-            ajaxPostNonString('/api/product/archive-product-discount',{'id':id,'quantity':quantity})
-                .then(()=> {
-                    ipcRenderer.send('showMessage','Archive Discount', id + ' : ' + discount + ' % is successfully archived.')
-                    clear()
-                    $('#inventory-history-discount-list').modal('hide')
-                })
-        }
+function setProductDiscountUpdate(id,discount,quantity) {
+    $('#inventory-discount-add-update').off('click')
+    $('#inventory-discount-add-update').on('click',()=> {
+        const quantityUpdate = $('#inventory-discount-add-quantity').val()
+        const discountUpdate = $('#inventory-discount-add-percent').val()
+        ipcRenderer.send('default',
+            'Update Discount',`Do you want to update ${id} = Quantity: ${quantity} / Discount: ${discountUpdate} % to Quantity: ${quantityUpdate} / Discount: ${discountUpdate} %`,['Update','Cancel'])
+        ipcRenderer.removeAllListeners('default')
+        ipcRenderer.on('default',(e,num)=> {
+            if(num === 0) {
+                ajaxPostNonString('/api/product/update-product-discount',
+                {'id':id,'quantity':quantity,'discount':discount,'quantityUpdate':quantityUpdate,'discountUpdate':discountUpdate})
+                    .then((response)=> {
+                        if(response) {
+                            saveLog('Product Discount Update',
+                                `Updated product discount ID: ${id} / Quantity ${quantity} / Discount: ${discount} % to Quantity: ${quantityUpdate} / Discount: ${discountUpdate} %`)
+                            ipcRenderer.send('showMessage','Product Discount Update','Product discount update successfully.')
+                            $('#inventory-history-discount-list').modal('hide')
+                        } else ipcRenderer.send('showError','Product Discount Update',`Invalid: id: ${id} / Quantity: ${quantityUpdate} / Discount: ${discountUpdate} % \nCheck for input`)
+                    })
+            }
+        })
     })
-})
+}
+
+function setProductDiscountArchive(id,discount,quantity) {
+    $('#inventory-discount-add-archive').off('click')
+    $('#inventory-discount-add-archive').on('click',()=> {
+        ipcRenderer.send('default','Archive Discount',`Do you want to archive ${id} : Quantity: ${quantity} / Discount: ${discount} %`,['Continue','Cancel'])
+        ipcRenderer.removeAllListeners('default')
+        ipcRenderer.on('default',(e,num)=> {
+            if(num === 0) {
+                ajaxPostNonString('/api/product/archive-product-discount',{'id':id,'quantity':quantity})
+                    .then(()=> {
+                        saveLog('Product Discount Archive', `Archived product discount = ID: ${id} / Quantity: ${quantity} / Discount: ${discount} %`)
+                        ipcRenderer.send('showMessage',
+                            'Archive Discount', `${id} = Quantity: ${quantity} / Discount:${discount} % is successfully archived.`)
+                        clear()
+                        $('#inventory-history-discount-list').modal('hide')
+                    })
+            }
+        })
+    })
+}
 
 function populateProductHistoryModal(data) {
     $('#product-history-body').empty()
     for(let i in data) {
         const row = `<tr class="d-flex">
-                        <td class="col-1">`+ (parseInt(i) + 1) +`</td>
-                        <td class="col-4">`+ data[i]['name'] +`</td>
-                        <td class="col-2">&#8369; `+ parseFloat(data[i]['price']).toLocaleString() +`</td>
-                        <td class="col-2">&#8369; `+ parseFloat(data[i]['capital']).toLocaleString() +`</td>
-                        <td class="col-3">`+ data[i]['createdAt'] +`</td>
+                        <td class="col-1">${add(i,1)}</td>
+                        <td class="col-4">${data[i]['name']}</td>
+                        <td class="col-2">&#8369; ${parseFloat(data[i]['price']).toLocaleString()}</td>
+                        <td class="col-2">&#8369; ${parseFloat(data[i]['capital']).toLocaleString()}</td>
+                        <td class="col-3">${data[i]['createdAt']}</td>
                     </tr>`
         $('#product-history-body').append(row)
     }
@@ -417,10 +456,10 @@ function populateDiscountHistoryModal(data) {
     $('#discount-history-body').empty()
     for(let i in data) {
         const row = `<tr class="d-flex">
-                        <td class="col-1">`+ (parseInt(i) + 1) +`</td>
-                        <td class="col-3">`+ data[i]['quantity'] +`</td>
-                        <td class="col-3">`+ data[i]['discount'] +`</td>
-                        <td class="col-5">`+ data[i]['timestamp'] +`</td>
+                        <td class="col-1">${add(i,1)}</td>
+                        <td class="col-3">${data[i]['quantity']}</td>
+                        <td class="col-3">${data[i]['discount']}</td>
+                        <td class="col-5">${data[i]['timestamp']}</td>
                     </tr>`
         $('#discount-history-body').append(row)
     }
@@ -481,10 +520,12 @@ $('#database-product-add-btn').on('click',()=> {
     const product = makeProductEntity(id,name,price,capital)
     ajaxPostStringify('/api/product/add-product',product)
         .then(()=> {
-            ipcRenderer.send('showMessage','Add Product', id + ' is successfully saved.')
+            saveLog('Product Add',
+                `Adding new product = ID: ${id} / Name: ${name} / Price: \u20B1 ${price} / Capital: ${capital}`)
+            ipcRenderer.send('showMessage','Add Product', `${id} is successfully saved.`)
             $('#inventory-product-add-history').modal('hide')
         }).fail(()=> {
-            ipcRenderer.send('showError','Add Product', id + ' is not successfully saved.\nCheck server connection before trying again!')
+            ipcRenderer.send('showError','Add Product', `${id} is not successfully saved.\nCheck server connection before trying again!`)
         })
 })
 

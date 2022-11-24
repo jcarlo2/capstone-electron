@@ -1,5 +1,6 @@
 import {i_history_populate, ipcRenderer} from "../../../variable.js";
 import {ajaxDefaultArray, ajaxPostNonString, ajaxUrl, multiply} from "../../../function.js";
+import {saveLog} from "../log/log.js";
 
 export function startInventoryHistory() {
     setOption()
@@ -44,9 +45,18 @@ function setArchive() {
 }
 
 function archiveReport(link,id) {
-    if(id.charAt(0) === 'I' && link === undefined) archiveDefault('/api/inventory/archived-delivery',{'id':id})
-    else if(id.charAt(0) === 'N' && link === undefined) archiveDefault('/api/inventory/archived-null-report',{'id':id})
-    else archivePostNonString(link,id)
+    if(id.charAt(0) === 'I' && link === undefined) {
+        saveLog('Inventory Archive', 'Archived Delivery Report: ' + id)
+        archiveDefault('/api/inventory/archived-delivery',{'id':id})
+    } else if(id.charAt(0) === 'N' && link === undefined) {
+        saveLog('Inventory Archive', 'Archived Void Report: ' + id)
+        archiveDefault('/api/inventory/archived-null-report',{'id':id})
+    } else {
+        saveLog('Inventory Archive', 'Archived Transaction with inventory report link: ' + link)
+        archivePostNonString(link,id)
+    }
+
+
 }
 
 // create error when not newest
@@ -224,20 +234,20 @@ function populateTable(data,id) {
     const flag = data[0]['price'] === undefined;
     for(let i=0;i<data.length;i++) {
         const rowNull = `<tr id="inventory-history-row-`+ data[i]['id'] +`" class="d-flex">
-                        <th class="col-1">`+ (i+1) +`</th>
-                        <td class="text-start col-5">`+ data[i]['name'] +`</td>
-                        <td class="text-start col-2">&#8369; `+ data[i]['price'] +`</td>
-                        <td class="text-start col-2">`+ data[i]['quantity'] +`</td>
-                        <td class="text-start col-2">&#8369; `+ parseFloat(data[i]['totalAmount']).toLocaleString() +`</td>
-                    </tr>`
+                            <th class="col-1">`+ (i+1) +`</th>
+                            <td class="text-start col-5">`+ data[i]['name'] +`</td>
+                            <td class="text-start col-2">&#8369; `+ data[i]['capital'] +`</td>
+                            <td class="text-start col-2">`+ data[i]['quantity'] +`</td>
+                            <td class="text-start col-2">&#8369; `+ multiply(data[i]['capital'],data[i]['quantity']).toLocaleString() +`</td>
+                        </tr>`
 
         const rowDelivery = `<tr id="inventory-history-row-`+ data[i]['id'] +`" class="d-flex">
-                        <th class="col-1">`+ (i+1) +`</th>
-                        <td class="text-start col-5">`+ data[i]['name'] +`</td>
-                        <td class="text-start col-2">`+ data[i]['quantity'] +`</td>
-                        <td class="text-start col-2">`+ parseFloat(data[i]['discountPercentage']).toLocaleString() +` %</td>
-                        <td class="text-start col-2">&#8369; `+ parseFloat(data[i]['totalAmount']).toLocaleString() +`</td>
-                    </tr>`
+                                <th class="col-1">`+ (i+1) +`</th>
+                                <td class="text-start col-5">`+ data[i]['name'] +`</td>
+                                <td class="text-start col-2">`+ data[i]['quantity'] +`</td>
+                                <td class="text-start col-2">`+ parseFloat(data[i]['discountPercentage']).toLocaleString() +` %</td>
+                                <td class="text-start col-2">&#8369; `+ parseFloat(data[i]['totalAmount']).toLocaleString() +`</td>
+                            </tr>`
         $('#inventory-history-item-body').append(flag ? rowDelivery : rowNull)
         setProductClick($('#inventory-history-row-'+data[i]['id']), data[i],id)
     }
@@ -246,15 +256,13 @@ function populateTable(data,id) {
 function setProductClick(row, data,id) {
     row.off('click')
     row.on('click',()=> {
-        const quantity = parseInt(data['quantity'])
-        const totalPrice = multiply(data['price'],quantity).toLocaleString()
         const totalAmount = parseFloat(data['totalAmount']).toLocaleString()
         const productId = data['id'] === undefined ? data['productId'] : data['id']
         $('#inventory-history-info-name').text(data['name'])
         $('#inventory-history-info-id').text('ID: ' + productId)
-
+        $('#inventory-history-info-reason').text('Reason: ' + data['reason'])
         if(id.charAt(0) === 'I') setDeliveryProductRow(parseFloat(data['totalPrice']).toLocaleString(), data['discountPercentage'],totalAmount)
-        else setNullProductRow(totalPrice,quantity,totalAmount)
+        else setNullProductRow(parseFloat(data['price']).toLocaleString(),parseInt(data['quantity']),totalAmount)
         $('#inventory-history-product-info').modal('show')
     })
 }
@@ -265,6 +273,7 @@ function setDeliveryProductRow(totalPrice,discount,totalAmount) {
     $('#inventory-history-info-cost-amount').val('\u20B1 ' + totalPrice)
     $('#inventory-history-info-cost-discount').val(discount + ' %')
     $('#inventory-history-info-cost-total').val('\u20B1 ' + totalAmount)
+    $('#inventory-history-info-reason').addClass('d-none')
 }
 
 function setNullProductRow(totalPrice,quantity,totalAmount) {
@@ -273,6 +282,7 @@ function setNullProductRow(totalPrice,quantity,totalAmount) {
     $('#inventory-history-info-amount').val('\u20B1 ' + totalPrice)
     $('#inventory-history-info-amount-quantity').val(quantity)
     $('#inventory-history-info-amount-total').val('\u20B1 ' + totalAmount)
+    $('#inventory-history-info-reason').removeClass('d-none')
 }
 
 function setRightTable(price) {

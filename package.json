@@ -10,26 +10,22 @@
   "license": "MIT",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.2.0",
+    "@popperjs/core": "^2.11.6",
     "bootstrap": "^5.2.1",
     "bootstrap-icons": "^1.9.1",
     "downloads-folder": "^3.0.3",
-    "electron": "^20.1.4",
+    "electron-packager": "^17.1.1",
     "exceljs": "^4.3.0",
-    "highcharts": "^10.3.1",
+    "express": "^4.18.1",
     "jquery": "^3.6.1",
     "logger": "^0.0.1",
     "node-sass": "^7.0.3",
     "platform-folders": "^0.6.0",
     "registry-js": "^1.15.1",
-    "xlsx": "^0.18.5"
-  },
-  "build": {
-    "extraFiles": [
-      "capstone-backend.jar"
-    ]
+    "xlsx": "^0.18.5",
+    "xlsx-js-style": "^1.2.0"
   },
   "devDependencies": {
-    "express": "^4.18.1",
-    "tree-kill": "^1.2.2"
+    "electron": "^20.1.4"
   }
 }

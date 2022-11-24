@@ -1,6 +1,6 @@
 export const {ipcRenderer} = require('electron')
 export const path = require('platform-folders')
-export const charts = require('highcharts')
+export const xlsx = require('xlsx-js-style')
 class IP {
     _url = 'http://localhost:8080'
 
@@ -50,6 +50,20 @@ class IntervalVariable {
     }
 }
 
+class SavePath {
+    _folderPath = path.getDocumentsFolder()
+
+    get folderPath() {
+        return this._folderPath
+    }
+
+    set folderPath(value) {
+        this._folderPath = value
+    }
+}
+
+export const savePath = new SavePath()
+
 /**
  * Used for table renderer and saving entity to database
  *      <NAME>                              <TAB>                   <FUNCTION>
@@ -84,10 +98,12 @@ export const json_var = {
 // transaction interval
 
 export const t_add_populate = new IntervalVariable()
+export const t_add_date = new IntervalVariable()
 export const t_add_report_id = new IntervalVariable()
 export const t_add_dropdown = new IntervalVariable()
 export const t_ret_populate = new IntervalVariable()
 export const t_ret_new_total = new IntervalVariable()
+export const t_ret_date = new IntervalVariable()
 export const t_history_populate = new IntervalVariable()
 
 // inventory interval
@@ -100,6 +116,9 @@ export const i_null_generate_id = new IntervalVariable()
 export const i_history_populate = new IntervalVariable()
 export const i_product_discount = new IntervalVariable()
 export const i_product_archive = new IntervalVariable()
+
+// log interval
+export const log_populate = new IntervalVariable()
 
 
 class Buttons {
