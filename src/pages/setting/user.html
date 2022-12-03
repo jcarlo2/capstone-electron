@@ -1,0 +1,44 @@
+<link rel="stylesheet" href="src/css/user.css">
+<div class="d-flex flex-column align-items-center">
+    <div id="user-button-section" class="d-flex justify-content-evenly mb-3">
+        <input id="user-list-button" type="button" class="me-2 btn btn-info btn-sm" value="List">
+        <input id="user-create-button" type="button" class="me-2 btn btn-success btn-sm" value="Create Account">
+        <input id="user-change-button" type="button" class="me-2 btn btn-warning btn-sm" value="Change Password">
+        <input id="user-delete-button" type="button" class="btn btn-danger btn-sm" value="Delete Account">
+    </div>
+    <div id="user-create-section" class="d-none w-100 d-flex flex-column align-items-center">
+        <input id="create-id" type="number" readonly class="form-control-sm mb-2">
+        <input id="create-password" type="password" placeholder="Password" class="form-control-sm mb-2">
+        <input id="create-repeat-password" type="password" placeholder="Enter Password Again" class="form-control-sm mb-2">
+        <input id="create-first" type="text" placeholder="First name" class="form-control-sm mb-2">
+        <input id="create-last" type="text" placeholder="Last name" class="form-control-sm mb-2">
+        <input id="user-create-account" type="button" class="mt-2 btn btn-success" value="Create Account">
+    </div>
+    <div id="user-change-section" class="d-none w-100 d-flex flex-column align-items-center">
+        <input id="change-id" placeholder="ID" type="number" class="form-control-sm mb-2">
+        <input id="change-old-password" type="password" placeholder="Old Password" class="form-control-sm mb-2">
+        <input id="change-new-password" type="password" placeholder="New Password" class="form-control-sm mb-2">
+        <input id="change-repeat-new-password" type="password" placeholder="Enter New Password Again" class="form-control-sm mb-2">
+        <input id="user-change-password" type="button" class="mt-2 btn btn-warning" value="Change Password">
+    </div>
+    <div id="user-delete-section" class="d-none w-100 d-flex flex-column align-items-center">
+        <input id="delete-id" type="number" placeholder="ID To Delete" class="form-control-sm mb-2">
+        <input id="delete-password" type="password" placeholder="Admin Password" class="form-control-sm mb-2">
+        <input id="user-delete-account" type="button" class="mt-2 btn btn-danger" value="Delete Account">
+    </div>
+    <div id="user-table-section" class="d-none w-100">
+        <table class="table table-striped table-hover mb-0">
+            <thead>
+                <tr class="d-flex">
+                    <th class="col-1 text-start" scope="col">#</th>
+                    <th class="col-3 text-center" scope="col">ID</th>
+                    <th class="col-4 text-center" scope="col">Name</th>
+                    <th class="col-4 text-center" scope="col">Created At</th>
+                </tr>
+            </thead>
+            <tbody id="user-table-body"></tbody>
+        </table>
+    </div>
+</div>
+<script type="module" defer src="src/js/pages/user-level/setting/user.js"></script>
+<script type="module" defer src="src/js/pages/action/setting/user.js"></script>

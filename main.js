@@ -1,7 +1,16 @@
+
 const electron = require('electron')
 const path = require('path')
 const {app, BrowserWindow, Menu, ipcMain, dialog} = electron
 const lock = app.requestSingleInstanceLock()
+const ipMain = {
+    'http': 'http://',
+    'address': '000.000.000.000',
+    'port': ':8091',
+    'url': 'http://000.000.000:8091',
+}
+
+const role = {'role': -1}
 
 let logInWindow
 let mainWindow
@@ -45,6 +54,7 @@ else {
         Menu.setApplicationMenu(mainMenu)
         logInWindow.loadFile('index.html').then(()=>{
             logInWindow.maximize()
+            // logInWindow.webContents.openDevTools()
             logInWindow.on('closed', ()=> {
                 logInWindow = null
             })
@@ -65,9 +75,11 @@ function createMainWindow(filePath) {
 
     mainWindow.loadFile(filePath).then(()=> {
         mainWindow.maximize()
+        mainWindow.hide()
         mainWindow.on('closed',()=> {
             app.quit()
             mainWindow = null
+            settingWindow = null
         })
     })
 }
@@ -86,34 +98,48 @@ function createSettingWindow(filePath) {
     })
 
     settingWindow.loadFile(filePath).then(()=> {
-
+        // settingWindow.hide()
         settingWindow.on('close',(event)=> {
             event.preventDefault()
             settingWindow.hide()
         })
-        settingWindow.on('closed',(event)=> {
-            event.preventDefault()
-        })
     })
 }
 
+
 ipcMain.on('setting',()=> {
-    if(settingWindow === undefined) {
-        createSettingWindow('setting.html')
-        settingWindow.webContents.openDevTools()
-    }
-    else if(settingWindow && settingWindow.isVisible()) settingWindow.hide()
+    if(settingWindow.isVisible()) settingWindow.hide()
     else settingWindow.show()
 })
 
+ipcMain.on('getRole',()=> {
+    if(settingWindow) settingWindow.webContents.send('getRole',role.role)
+    if(mainWindow) mainWindow.webContents.send('getRole',role.role)
+})
 
-ipcMain.on('login:verify',(e,is_verified,id)=> {
+ipcMain.on('setRole',(e, roleTemp)=> {
+    role.role = roleTemp
+})
+
+ipcMain.on('setIp',(e,address)=> {
+    ipMain.address = address
+    ipMain.url = ipMain.http + address + ipMain.port
+})
+
+ipcMain.on('getIp',()=> {
+    if(settingWindow) settingWindow.webContents.send('getIp',ipMain)
+    if(logInWindow) logInWindow.webContents.send('getIp',ipMain)
+    if(mainWindow) mainWindow.webContents.send('getIp',ipMain)
+})
+
+
+ipcMain.on('login:verify',(e,is_verified,id,ip,password)=> {
     if(is_verified && mainWindow === undefined) {
         createMainWindow('main.html')
-        mainWindow.webContents.openDevTools()
-        mainWindow.webContents.once('did-finish-load',()=> {
-            mainWindow.webContents.send('login:verify',id)
-        })
+        createSettingWindow('setting.html')
+        // mainWindow.webContents.openDevTools()
+        settingWindow.webContents.openDevTools()
+        mainWindow.webContents.once('did-finish-load',()=> mainWindow.webContents.send('login:verify',id,ip,password))
         logInWindow.hide()
     }
 })

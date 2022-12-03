@@ -7,13 +7,13 @@ export function startGenerate() {
     setMaximumDate()
 }
 
-function setExportButton(transactionSummary,voidSummary,deliverySummary,transactionProducts,voidProducts,deliveryProducts) {
+function setExportButton(transactionSummary,voidSummary,deliverySummary,transactionProducts,voidProducts,deliveryProducts,start,end) {
     $('#generate-export').off('click')
     $('#generate-export').on('click', ()=> {
         ipcRenderer.send('default','Export','Export as Excel or Microsoft Word?',['Excel','MS Word','Cancel'])
         ipcRenderer.removeAllListeners('default')
         ipcRenderer.on('default',(e,num)=> {
-            if(num === 0) makeExcelFile(transactionSummary,voidSummary,deliverySummary,transactionProducts,voidProducts,deliveryProducts)
+            if(num === 0) makeExcelFile(transactionSummary,voidSummary,deliverySummary,transactionProducts,voidProducts,deliveryProducts,start,end)
             else if(num === 1) makeMsWordFile(transactionSummary,voidSummary,deliverySummary,transactionProducts,voidProducts,deliveryProducts)
         })
     })
@@ -23,14 +23,14 @@ function makeMsWordFile(transactionSummary,voidSummary,deliverySummary,transacti
 
 }
 
-function makeExcelFile(transactionSummary,voidSummary,deliverySummary,transactionProducts,voidProducts,deliveryProducts) {
+function makeExcelFile(transactionSummary,voidSummary,deliverySummary,transactionProducts,voidProducts,deliveryProducts,start,end) {
     ajaxUrl('/api/date/get-date').then((response)=> {
         const user = $('#main-user-name').text()
         const book = xlsx.utils.book_new()
         const transactionSheets = setTransactionSheets(transactionProducts)
         const voidSheets = setVoidSheets(voidProducts)
         const deliverySheets = setDeliverySheet(deliveryProducts)
-        const summarySheet = setSummarySheet(transactionSummary,voidSummary,deliverySummary)
+        const summarySheet = setSummarySheet(transactionSummary,voidSummary,deliverySummary,start,end,response)
 
         xlsx.utils.book_append_sheet(book,summarySheet,'Summary')
         xlsx.utils.book_append_sheet(book,transactionSheets[2],'Transaction (Name)')
@@ -48,7 +48,9 @@ function makeExcelFile(transactionSummary,voidSummary,deliverySummary,transactio
     })
 }
 
-function setSummarySheet(transactionSummary,voidSummary,deliverySummary) {
+function setSummarySheet(transactionSummary,voidSummary,deliverySummary,start,end,date) {
+    start = start === '' ? 'Initial' : start
+    end = end === '' ? date.split(' ')[0] : end
     const profit = transactionSummary['totalProfit']
     const loss = voidSummary['totalLoss']
     const incomeHex = 'D6E865'
@@ -56,21 +58,31 @@ function setSummarySheet(transactionSummary,voidSummary,deliverySummary) {
     const voidHex = 'CFCC1F'
     const deliveryHex = 'ADD8E6'
     const data = [
-        [{ v: 'Total Net Income', t: 's', s: setSummaryHeader(incomeHex)}],
+        [
+            { v: 'Total Net Income', t: 's', s: setSummaryHeader(incomeHex,'solid')},
+            { v: '', t: 's', s: setRowStyle(true,'FFFFFF')},
+            { v: '', t: 's', s: setRowStyle(true,'FFFFFF')},
+            { v: '', t: 's', s: setRowStyle(true,'FFFFFF')},
+            { v: '', t: 's', s: setSummaryHeader('FFFFFF','none')},
+            { v: 'Date:', t: 's', s: setSummaryHeader('e84343','solid')},
+            { v: start, t: 's', s: setSummaryHeader('e84343','solid')},
+            { v: 'To', t: 's', s: setSummaryHeader('e84343','solid')},
+            { v: end, t: 's', s: setSummaryHeader('e84343','solid')},
+        ],
         [
             { v: 'Total Profit', t: 's', s: setRowStyle(true,incomeHex)},
             { v: 'Total Loss', t: 's', s: setRowStyle(true,incomeHex)},
             { v: 'Total Amount', t: 's', s: setRowStyle(true,incomeHex)},
-            { v: '', t: 's', s: setRowStyle(true,incomeHex)}
+            { v: '', t: 's', s: setRowStyle(true,incomeHex)},
         ],
         [
-            { v: '\u20B1 ' + profit, t: 's', s: setRowStyle(false,incomeHex)},
-            { v: '\u20B1 ' + loss, t: 's', s: setRowStyle(false,incomeHex)},
+            { v: '\u20B1 ' + profit.toLocaleString(), t: 's', s: setRowStyle(false,incomeHex)},
+            { v: '\u20B1 ' + loss.toLocaleString(), t: 's', s: setRowStyle(false,incomeHex)},
             { v: '\u20B1 ' + subtract(profit,loss).toLocaleString(), t: 's', s: setRowStyle(false,incomeHex)},
             { v: '', t: 's', s: setRowStyle(false,incomeHex)},
         ],
         [],[],
-        [{ v: 'Total Sales', t: 's', s: setSummaryHeader(transactionHex)}],
+        [{ v: 'Total Sales', t: 's', s: setSummaryHeader(transactionHex,'solid')}],
         [
             { v: 'Total Sales', t: 's', s: setRowStyle(true,transactionHex)},
             { v: 'Total Capital', t: 's', s: setRowStyle(true,transactionHex)},
@@ -78,13 +90,13 @@ function setSummarySheet(transactionSummary,voidSummary,deliverySummary) {
             { v: '', t: 's', s: setRowStyle(true,transactionHex)}
         ],
         [
-            { v: '\u20B1 ' + transactionSummary['totalAmount'], t: 's', s: setRowStyle(false,transactionHex)},
-            { v: '\u20B1 ' + transactionSummary['totalCapital'], t: 's', s: setRowStyle(false,transactionHex)},
-            { v: '\u20B1 ' + profit, t: 's', s: setRowStyle(false,transactionHex)},
+            { v: '\u20B1 ' + transactionSummary['totalAmount'].toLocaleString(), t: 's', s: setRowStyle(false,transactionHex)},
+            { v: '\u20B1 ' + transactionSummary['totalCapital'].toLocaleString(), t: 's', s: setRowStyle(false,transactionHex)},
+            { v: '\u20B1 ' + profit.toLocaleString(), t: 's', s: setRowStyle(false,transactionHex)},
             { v: '', t: 's', s: setRowStyle(false,transactionHex)},
         ],
         [],[],
-        [{ v: 'Total Loss', t: 's', s: setSummaryHeader(voidHex)}],
+        [{ v: 'Total Loss', t: 's', s: setSummaryHeader(voidHex,'solid')}],
         [
             { v: 'Total Expired', t: 's', s: setRowStyle(true,voidHex)},
             { v: 'Total Damaged', t: 's', s: setRowStyle(true,voidHex)},
@@ -92,13 +104,13 @@ function setSummarySheet(transactionSummary,voidSummary,deliverySummary) {
             { v: 'Total Loss', t: 's', s: setRowStyle(true,voidHex)}
         ],
         [
-            { v: voidSummary['expiredItem'], t: 's', s: setRowStyle(false,voidHex)},
-            { v: voidSummary['damagedItem'], t: 's', s: setRowStyle(false,voidHex)},
-            { v: voidSummary['totalItem'], t: 's', s: setRowStyle(false,voidHex)},
-            { v: '\u20B1 ' + voidSummary['totalLoss'], t: 's', s: setRowStyle(false,voidHex)},
+            { v: voidSummary['expiredItem'].toLocaleString(), t: 's', s: setRowStyle(false,voidHex)},
+            { v: voidSummary['damagedItem'].toLocaleString(), t: 's', s: setRowStyle(false,voidHex)},
+            { v: voidSummary['totalItem'].toLocaleString(), t: 's', s: setRowStyle(false,voidHex)},
+            { v: '\u20B1 ' + voidSummary['totalLoss'].toLocaleString(), t: 's', s: setRowStyle(false,voidHex)},
         ],
         [],[],
-        [{ v: 'Delivery', t: 's', s: setSummaryHeader(deliveryHex)}],
+        [{ v: 'Delivery', t: 's', s: setSummaryHeader(deliveryHex,'solid')}],
         [
             { v: 'Total Quantity', t: 's', s: setRowStyle(true,deliveryHex)},
             { v: 'Total Cost', t: 's', s: setRowStyle(true,deliveryHex)},
@@ -106,8 +118,8 @@ function setSummarySheet(transactionSummary,voidSummary,deliverySummary) {
             { v: '', t: 's', s: setRowStyle(true,deliveryHex)}
         ],
         [
-            { v: deliverySummary['totalItem'], t: 's', s: setRowStyle(false,deliveryHex)},
-            { v: '\u20B1 ' + deliverySummary['totalCost'], t: 's', s: setRowStyle(false,deliveryHex)},
+            { v: deliverySummary['totalItem'].toLocaleString(), t: 's', s: setRowStyle(false,deliveryHex)},
+            { v: '\u20B1 ' + deliverySummary['totalCost'].toLocaleString(), t: 's', s: setRowStyle(false,deliveryHex)},
             { v: '', t: 's', s: setRowStyle(false,deliveryHex)},
             { v: '', t: 's', s: setRowStyle(false,deliveryHex)},
         ]
@@ -118,7 +130,7 @@ function setSummarySheet(transactionSummary,voidSummary,deliverySummary) {
 }
 
 function setSummarySheetProperties(sheet,transactionSummary,voidSummary,deliverySummary) {
-    const columnWidth = [{wch: 20},{wch: 20},{wch: 20},{wch: 20}]
+    const columnWidth = [{wch: 20},{wch: 20},{wch: 20},{wch: 20},{wch: 5},{wch: 10},{wch: 15},{wch: 5},{wch: 15}]
     sheet['!merges'] = [
         {s: {r:0, c: 0}, e: {r:0, c: 3}},
         {s: {r:5, c: 0}, e: {r:5, c: 3}},
@@ -132,8 +144,8 @@ function setSummarySheetProperties(sheet,transactionSummary,voidSummary,delivery
     sheet['!cols'] = columnWidth
 }
 
-function setSummaryHeader(hexColor) {
-    return { alignment: {horizontal: 'center'},font: { name: 'Calibri', sz: 16, bold: true}, fill: { patternType: 'solid', fgColor: { rgb: hexColor } }}
+function setSummaryHeader(hexColor,pattern) {
+    return { alignment: {horizontal: 'center'},font: { name: 'Calibri', sz: 16, bold: true}, fill: { patternType: pattern, fgColor: { rgb: hexColor } }}
 }
 
 function setRowStyle(isHeader,hexColor) {
@@ -170,9 +182,9 @@ function populateDeliverySheetWithData(dataList,isCalculate) {
         sheet.push([
             { v: data['id'], t: 's', s: rowStyle},
             { v: data['name'], t: 's', s: rowStyle},
-            { v: data['quantity'], t: 's', s: rowStyle},
+            { v: data['quantity'].toLocaleString(), t: 's', s: rowStyle},
             { v: data['discount'] + ' %', t: 's', s: rowStyle},
-            { v: '\u20B1 ' + data['totalCost'], t: 's', s: rowStyle},
+            { v: '\u20B1 ' + data['totalCost'].toLocaleString(), t: 's', s: rowStyle},
         ])
         if(isCalculate) calculateSheetColumnWidth(columnWidth,data)
     })
@@ -211,9 +223,9 @@ function populateVoidSheetWithData(dataList,isCalculate) {
             { v: data['id'], t: 's', s: rowStyle},
             { v: data['name'], t: 's', s: rowStyle},
             { v: data['reason'], t: 's', s: rowStyle},
-            { v: data['quantity'], t: 's', s: rowStyle},
-            { v: '\u20B1 ' + data['capital'], t: 's', s: rowStyle},
-            { v: '\u20B1 ' + data['totalCapital'], t: 's', s: rowStyle},
+            { v: data['quantity'].toLocaleString(), t: 's', s: rowStyle},
+            { v: '\u20B1 ' + data['capital'].toLocaleString(), t: 's', s: rowStyle},
+            { v: '\u20B1 ' + data['totalCapital'].toLocaleString(), t: 's', s: rowStyle},
         ])
         if(isCalculate) calculateSheetColumnWidth(columnWidth,data)
     })
@@ -253,13 +265,13 @@ function populateTransactionSheetWithData(dataList,isCalculate) {
         sheet.push([
             { v: data['id'], t: 's', s: rowStyle},
             { v: data['name'], t: 's', s: rowStyle},
-            { v: '\u20B1 ' + data['price'], t: 's', s: rowStyle},
-            { v: '\u20B1 ' + data['capital'], t: 's', s: rowStyle},
-            { v: data['quantity'], t: 's', s: rowStyle},
+            { v: '\u20B1 ' + data['price'].toLocaleString(), t: 's', s: rowStyle},
+            { v: '\u20B1 ' + data['capital'].toLocaleString(), t: 's', s: rowStyle},
+            { v: data['quantity'].toLocaleString(), t: 's', s: rowStyle},
             { v: data['discount'] + ' %', t: 's', s: rowStyle},
-            { v: '\u20B1 ' + data['totalPrice'], t: 's', s: rowStyle},
-            { v: '\u20B1 ' + data['totalCapital'], t: 's', s: rowStyle},
-            { v: '\u20B1 ' + data['profit'], t: 's', s: rowStyle}
+            { v: '\u20B1 ' + data['totalPrice'].toLocaleString(), t: 's', s: rowStyle},
+            { v: '\u20B1 ' + data['totalCapital'].toLocaleString(), t: 's', s: rowStyle},
+            { v: '\u20B1 ' + data['profit'].toLocaleString(), t: 's', s: rowStyle}
         ])
         if(isCalculate) calculateSheetColumnWidth(columnWidth,data)
     })
@@ -305,7 +317,7 @@ function setShowButton() {
                     option = 'end'
                     data = {'end':end}
                 }
-                showData(option,data)
+                showData(option,data,start,end)
                 $('#generate-export').prop('disabled',false)
                 $('#generate-main-show').prop('disabled',false)
             }
@@ -318,7 +330,7 @@ function setShowButton() {
     },1000)
 }
 
-function showData(option,data) {
+function showData(option,data, start,end) {
     let ajax
     if(option === 'all') {
         ajax = $.when(
@@ -350,7 +362,7 @@ function showData(option,data) {
             setTransactionProducts(transactionProducts[0][2])
             setVoidProducts(voidProducts[0][2])
             setDeliveryProducts(deliveryProducts[0][2])
-            setExportButton(transactionSummary[0],voidSummary[0],deliverySummary[0],transactionProducts,voidProducts,deliveryProducts)
+            setExportButton(transactionSummary[0],voidSummary[0],deliverySummary[0],transactionProducts,voidProducts,deliveryProducts,start,end)
         })
     }
 }

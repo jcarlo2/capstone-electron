@@ -1,20 +1,12 @@
 export const {ipcRenderer} = require('electron')
 export const path = require('platform-folders')
 export const xlsx = require('xlsx-js-style')
-class IP {
-    _url = 'http://localhost:8080'
-
-    get url() {
-        return this._url;
-    }
-
-    set url(value) {
-        this._url = value;
-    }
+export const ip = {
+    'http': 'http://',
+    'address': '000.000.000.000',
+    'port': ':8091',
+    'url': 'http://000.000.000:8091',
 }
-
-export const ip = new IP()
-
 class RowStockColor {
     _red = 50
     _yellow = 100
@@ -119,6 +111,10 @@ export const i_product_archive = new IntervalVariable()
 
 // log interval
 export const log_populate = new IntervalVariable()
+
+// setting
+export const connection_checker = new IntervalVariable()
+export const user_list = new IntervalVariable()
 
 
 class Buttons {

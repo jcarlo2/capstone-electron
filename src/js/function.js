@@ -4,12 +4,20 @@ import {
     i_add_populate,
     i_history_populate,
     i_null_generate_id,
-    i_null_populate, i_product_archive, i_product_discount, ip,
-    json_var, log_populate,
-    stockInfo, t_add_date, t_add_dropdown,
+    i_null_populate,
+    i_product_archive,
+    i_product_discount,
+    ip,
+    ipcRenderer,
+    json_var,
+    log_populate,
+    stockInfo,
+    t_add_date,
+    t_add_dropdown,
     t_add_populate,
     t_add_report_id,
-    t_history_populate, t_ret_date,
+    t_history_populate,
+    t_ret_date,
     t_ret_new_total,
     t_ret_populate
 } from "./variable.js";
@@ -77,8 +85,7 @@ export function getDate() {
     hh = hh < 10 ? '0' + hh : hh
     mm = mm < 10 ? '0' + mm : mm
     ss = ss < 10 ? '0' + ss : ss
-
-    return MM + '/' + dd + '/' + yyyy + ' ' + hh + ':' + mm + ':' + ss
+    return  `${MM}/${dd}/${yyyy} ${hh}:${mm}:${ss}`
 }
 
 export function setRowColor(row,quantity) {
@@ -131,5 +138,22 @@ export function ajaxDefaultArray(url,array) {
         url: ip.url + url,
         data: array
     })
+}
+
+export function autoIpSetter() {
+    setInterval(()=> {
+        ipcRenderer.send('getIp')
+        ipcRenderer.removeAllListeners('getIp')
+        ipcRenderer.on('getIp',(e,ipMain)=> {
+            ip.address = ipMain.address
+            ip.url = ipMain.url
+        })
+    },1000)
+}
+
+export function capitalizeWords(string) {
+    return string.map(element => {
+        return element.charAt(0).toUpperCase() + element.slice(1).toLowerCase()
+    }).join(' ')
 }
 

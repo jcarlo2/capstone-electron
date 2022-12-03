@@ -77,13 +77,8 @@ function setDropDown() {
 function reportIdListener() {
     t_add_report_id.intervalId = setInterval(()=> {
         const id = $('#transaction-left-add-report').text().substring(4)
-        $.ajax({
-            url: ip.url + '/api/transaction/is-exist-report-id',
-            type: 'GET',
-            data: {'id': id},
-            success: function (response) {
-                if(response) generateId()
-            }
+        ajaxDefaultArray('/api/transaction/is-exist-report-id',{'id':id}).then((response)=> {
+            if(response) generateId()
         })
     },500)
 }
@@ -122,7 +117,7 @@ function populateProductList(data) {
 
 function setClick(data,row) {
     row.on('click', ()=> {
-
+        $('#transaction-add-title').text(data['name'])
         $('#transaction-add-title').text(data['name'])
         $('#transaction-add-hidden').addClass(data['id'])
         $('#transaction-add-hidden').addClass(data['capital'].toString())

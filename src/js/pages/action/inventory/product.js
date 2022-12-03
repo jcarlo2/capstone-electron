@@ -226,7 +226,7 @@ function setAddDiscountSave() {
         if((discount === '' || discount === 0) && (quantity === '' || quantity === 0)) ipcRenderer.send('showError','Add Discount','Invalid: check discount percentage')
         else ajaxPostNonString('/api/product/add-product-discount',{'quantity':quantity,'discount':discount,'id':id})
             .then(()=> {
-                saveLog('Product Discount', `Adding new discount to a product = ID: ${id} / Quantity: ${quantity} / Discount: ${discount} %`)
+                saveLog('Product Discount Add', `Added new discount to a product = ID: ${id} / Quantity: ${quantity} / Discount: ${discount} %`)
                 ipcRenderer.send('showMessage','Add Product Discount', `${id}: successfully added new discount.`)
             })
     })
@@ -399,7 +399,7 @@ function setProductDiscountUpdate(id,discount,quantity) {
         const quantityUpdate = $('#inventory-discount-add-quantity').val()
         const discountUpdate = $('#inventory-discount-add-percent').val()
         ipcRenderer.send('default',
-            'Update Discount',`Do you want to update ${id} = Quantity: ${quantity} / Discount: ${discountUpdate} % to Quantity: ${quantityUpdate} / Discount: ${discountUpdate} %`,['Update','Cancel'])
+            'Update Discount',`Do you want to update ${id} = Quantity: ${quantity} / Discount: ${discount} % to Quantity: ${quantityUpdate} / Discount: ${discountUpdate} %`,['Update','Cancel'])
         ipcRenderer.removeAllListeners('default')
         ipcRenderer.on('default',(e,num)=> {
             if(num === 0) {
@@ -455,14 +455,38 @@ function populateProductHistoryModal(data) {
 function populateDiscountHistoryModal(data) {
     $('#discount-history-body').empty()
     for(let i in data) {
-        const row = `<tr class="d-flex">
+        const row = `<tr id="discount-${i}" class="d-flex">
                         <td class="col-1">${add(i,1)}</td>
                         <td class="col-3">${data[i]['quantity']}</td>
                         <td class="col-3">${data[i]['discount']}</td>
                         <td class="col-5">${data[i]['timestamp']}</td>
                     </tr>`
         $('#discount-history-body').append(row)
+        setClickToActivateDiscount(data[i],$('#discount-'+i))
     }
+}
+
+function setClickToActivateDiscount(data,row) {
+    row.off('click')
+    row.on('click',()=> {
+        const id = $('#inventory-product-update').val()
+        const quantity = data['quantity']
+        const discount = data['discount']
+        ajaxDefaultArray('/api/product/is-exist-discount',{'id': id, 'quantity': quantity}).then((response)=> {
+            const message = response ? `Quantity: ${quantity} is active. Override?` : `Add to product discount: Quantity: ${quantity} / Discount: ${discount} %`
+            const button = response ? ['Override','Cancel'] : ['Continue','Cancel']
+            ipcRenderer.send('default','Product discount',message,button)
+            ipcRenderer.removeAllListeners('default')
+            ipcRenderer.on('default',(e,num)=> {
+                if(num === 0 && response) ajaxPostNonString('/api/product/discount-activate',{'id': id, 'quantity': quantity, 'discount': discount, 'isOverride': true})
+                else ajaxPostNonString('/api/product/discount-activate',{'id': id, 'quantity': quantity, 'discount': discount, 'isOverride': false})
+                if(num === 0) {
+                    saveLog('Product Discount Activate', `Added product discount ${id} = Quantity: ${quantity} / Discount: ${discount} %`)
+                    ipcRenderer.send('showMessage','Product Discount',`${id} = Quantity: ${quantity} / Discount: ${discount} % is successfully added.`)
+                }
+            })
+        })
+    })
 }
 
 $('#product-history-modal').on('hidden.bs.modal',()=> {
@@ -521,7 +545,7 @@ $('#database-product-add-btn').on('click',()=> {
     ajaxPostStringify('/api/product/add-product',product)
         .then(()=> {
             saveLog('Product Add',
-                `Adding new product = ID: ${id} / Name: ${name} / Price: \u20B1 ${price} / Capital: ${capital}`)
+                `Added new product = ID: ${id} / Name: ${name} / Price: \u20B1 ${price} / Capital: ${capital}`)
             ipcRenderer.send('showMessage','Add Product', `${id} is successfully saved.`)
             $('#inventory-product-add-history').modal('hide')
         }).fail(()=> {

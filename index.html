@@ -25,13 +25,19 @@
                 <div class="w-100 d-flex flex-column justify-content-center">
                     <label class="d-flex flex-column">
                         <div class="d-flex justify-content-center">
-                            <input id="index-username" type="text" class="w-50 mb-2 form-control-sm" placeholder="Username">
+                            <input id="index-username" value="000000" type="text" class="w-50 mb-2 form-control-sm" placeholder="Username">
                         </div>
                         <div class="d-flex justify-content-center">
-                            <input id="index-password" type="password" class="w-50 mb-2 form-control-sm" placeholder="Password">
+                            <input id="index-password" value="admin" type="password" class="w-50 mb-2 form-control-sm" placeholder="Password">
                         </div>
-                        <div class="d-flex justify-content-center">
+                        <div class="d-flex align-items-center justify-content-center">
                             <button id="index-login" class="w-25 btn btn-primary">Login</button>
+                            <div class="ms-2 d-flex align-items-center justify-content-between">
+                                <div id="spinner-login" class="me-5 spinner-border spinner-border-sm text-success d-none" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <button id="index-ip" class="btn btn-warning">IP</button>
+                            </div>
                         </div>
                     </label>
                 </div>
@@ -75,11 +81,30 @@
             <div class="bubble"></div>
             <div class="bubble"></div>
             <div class="bubble"></div>
+
+            <!-- inactive product -->
+            <div class="modal fade" id="index-ip-change" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>IP Address</h3>
+                        </div>
+                        <div class="input-group d-flex justify-content-center modal-body">
+                            <span class="input-group-text" id="ip-http">http://</span>
+                            <input id="ip-address" placeholder="000.000.000.000" type="text" class="form-control-sm">
+                            <span class="input-group-text" id="ip-port">:8091</span>
+                        </div>
+                        <div class="modal-footer d-flex justify-content-center">
+                            <input id="ip-change-button" type="button" value="Change" class="btn btn-warning">
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <script src="node_modules/jquery/dist/jquery.min.js"></script>
         <script>window.$ = window.jQuery = require('jquery')</script>
+        <script src="node_modules/@popperjs/core/dist/umd/popper-base.min.js"></script>
         <script src="node_modules/bootstrap/dist/js/bootstrap.js"></script>
-        <script src="node_modules/@popperjs/core/dist/umd/popper.min.js"></script>
         <script type="module" defer src="src/js/index.js"></script>
     </body>
 </html>

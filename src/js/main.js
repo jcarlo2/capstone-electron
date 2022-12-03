@@ -1,11 +1,9 @@
-import {
-    ipcRenderer,
-} from "./variable.js";
+import {ip, ipcRenderer,} from "./variable.js";
 import {setTransactionButtons} from "./pages/transaction.js";
 import {startTransactionAdd} from "./pages/action/transaction/add.js";
 import {startInventoryAdd} from "./pages/action/inventory/add.js";
 import {setInventoryButtons} from "./pages/inventory.js";
-import {clearIntervals} from "./function.js";
+import {ajaxDefaultArray, autoIpSetter, clearIntervals} from "./function.js";
 import {startGenerate} from "./pages/action/report/generate.js";
 import {startLog} from "./pages/action/log/log.js";
 
@@ -13,13 +11,30 @@ import {startLog} from "./pages/action/log/log.js";
 $().ready(() => {
     const main = $('#main-section')
     const spinner = $('#main-spinner')
-    ipcRenderer.on('login:verify',(e, id)=> {
+
+    ipcRenderer.on('login:verify',(e, id,ipIndex,password)=> {
         $('#main-user-name').text(id)
+        ip['address'] = ipIndex['address']
+        ip['url'] = ipIndex['url']
+        checkRole(id,password)
     })
 
-    setTimeout(()=> {
-        $('#main-transaction').click()
-    },500)
+    function checkRole(id,password) {
+        ajaxDefaultArray('/api/user/get-role',{'username': id,'password': password})
+            .then((response)=> {
+                ipcRenderer.send('setRole',response)
+                ipcRenderer.send('getRole')
+                ipcRenderer.removeAllListeners('getRole')
+                ipcRenderer.on('getRole',(e,role)=> {
+                    if(role === -1) checkRole(id,password)
+                    else {
+                        setTimeout(()=> {
+                            $('#main-transaction').click()
+                        },500)
+                    }
+                })
+            })
+    }
 
     $('#main-transaction').off('click')
     $('#main-transaction').on('click',()=> {
@@ -94,8 +109,9 @@ $().ready(() => {
     $('#main-setting').off('click')
     $('#main-setting').on('click',()=> {
         ipcRenderer.send('setting')
-        $('#setting-section').load('src/pages/setting/connection.html')
     })
+
+    autoIpSetter()
 })
 
 
