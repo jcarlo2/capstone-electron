@@ -1,9 +1,9 @@
 import {ipcRenderer} from "../../../variable.js";
 
 export function setSettingUserLevel() {
-    ipcRenderer.send('getRole')
-    ipcRenderer.removeAllListeners('getRole')
-    ipcRenderer.on('getRole',(e,role)=> {
+    ipcRenderer.removeAllListeners('getRoleSettingUser')
+    ipcRenderer.send('getRoleSettingUser')
+    ipcRenderer.on('getRoleSettingUser',(e,role)=> {
        hideElements(role)
     })
 }

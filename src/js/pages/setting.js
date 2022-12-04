@@ -7,7 +7,7 @@ import {startUser} from "./action/setting/user.js";
 $().ready(()=> {
     $('#setting-section').load('src/pages/setting/connection.html')
     setConnection()
-    setUser()
+    setSettingUser()
     setOther()
     setLogout()
     autoIpSetter()
@@ -28,7 +28,7 @@ function setConnection() {
     },1000)
 }
 
-function setUser() {
+function setSettingUser() {
     const interval = setInterval(()=> {
         $('#setting-user').off('click')
         $('#setting-user').on('click',()=> {

@@ -22,10 +22,10 @@ $().ready(() => {
     function checkRole(id,password) {
         ajaxDefaultArray('/api/user/get-role',{'username': id,'password': password})
             .then((response)=> {
+                ipcRenderer.removeAllListeners('getRoleMainTransaction')
                 ipcRenderer.send('setRole',response)
-                ipcRenderer.send('getRole')
-                ipcRenderer.removeAllListeners('getRole')
-                ipcRenderer.on('getRole',(e,role)=> {
+                ipcRenderer.send('getRoleMainTransaction')
+                ipcRenderer.on('getRoleMainTransaction',(e,role)=> {
                     if(role === -1) checkRole(id,password)
                     else {
                         setTimeout(()=> {

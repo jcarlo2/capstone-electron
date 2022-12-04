@@ -75,7 +75,7 @@ function createMainWindow(filePath) {
 
     mainWindow.loadFile(filePath).then(()=> {
         mainWindow.maximize()
-        mainWindow.hide()
+        // mainWindow.hide()
         mainWindow.on('closed',()=> {
             app.quit()
             mainWindow = null
@@ -98,9 +98,9 @@ function createSettingWindow(filePath) {
     })
 
     settingWindow.loadFile(filePath).then(()=> {
-        // settingWindow.hide()
+        settingWindow.hide()
         settingWindow.on('close',(event)=> {
-            event.preventDefault()
+            // event.preventDefault()
             settingWindow.hide()
         })
     })
@@ -112,9 +112,12 @@ ipcMain.on('setting',()=> {
     else settingWindow.show()
 })
 
-ipcMain.on('getRole',()=> {
-    if(settingWindow) settingWindow.webContents.send('getRole',role.role)
-    if(mainWindow) mainWindow.webContents.send('getRole',role.role)
+ipcMain.on('getRoleMainTransaction',()=> {
+    if(mainWindow) mainWindow.webContents.send('getRoleMainTransaction',role.role)
+})
+
+ipcMain.on('getRoleSettingUser',()=> {
+    if(settingWindow) settingWindow.webContents.send('getRoleSettingUser',role.role)
 })
 
 ipcMain.on('setRole',(e, roleTemp)=> {
@@ -137,8 +140,8 @@ ipcMain.on('login:verify',(e,is_verified,id,ip,password)=> {
     if(is_verified && mainWindow === undefined) {
         createMainWindow('main.html')
         createSettingWindow('setting.html')
-        // mainWindow.webContents.openDevTools()
-        settingWindow.webContents.openDevTools()
+        mainWindow.webContents.openDevTools()
+        // settingWindow.webContents.openDevTools()
         mainWindow.webContents.once('did-finish-load',()=> mainWindow.webContents.send('login:verify',id,ip,password))
         logInWindow.hide()
     }
