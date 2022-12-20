@@ -1,7 +1,12 @@
 <div class="position-sticky top-0 bg-light rounded">
-    <h2>Products</h2>
+    <div class="d-flex w-100 justify-content-between">
+        <h2>Products</h2>
+        <div id="notification" class="d-flex align-items-center px-3 d-none">
+            <i id="notification-exclamation" class="fa-solid fa-circle-exclamation p-2 text-warning pulse"></i>
+        </div>
+    </div>
     <label class="d-flex justify-content-between">
-        <input id="inventory-null-search" type="text" class="form-control-sm" placeholder="Search by id, name or price">
+        <input id="inventory-null-search" type="search" class="form-control-sm" placeholder="Search by id, name or price">
         <div class="dropdown">
             <button id="inventory-null-filter" class="btn dropdown-toggle border border-dark rounded" type="button" data-bs-toggle="dropdown" aria-expanded="false">Filter By Id</button>
             <ul class="dropdown-menu">

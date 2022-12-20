@@ -1,16 +1,17 @@
 import {startConnection} from "./action/setting/connection.js";
-import {autoIpSetter} from "../function.js";
+import {autoSetIp} from "../function.js";
 import {setSettingUserLevel} from "./user-level/setting/user.js";
-import {ipcRenderer} from "../variable.js";
+import {ipcRenderer, savePath} from "../variable.js";
 import {startUser} from "./action/setting/user.js";
+import {startOther} from "./action/setting/other.js";
 
 $().ready(()=> {
+    setInterval(()=> autoSetIp(),1000)
     $('#setting-section').load('src/pages/setting/connection.html')
     setConnection()
     setSettingUser()
     setOther()
     setLogout()
-    autoIpSetter()
     startConnection()
 })
 
@@ -51,6 +52,7 @@ function setOther() {
             $('#setting-user').prop('disabled',false)
             $('#setting-other').prop('disabled',true)
             $('#setting-section').load('src/pages/setting/other.html')
+            startOther()
         })
         if($('#setting-other').length === 1) clearInterval(interval)
     },1000)
@@ -60,12 +62,10 @@ function setLogout() {
     const interval = setInterval(()=> {
         $('#setting-logout').off('click')
         $('#setting-logout').on('click',()=> {
-            ipcRenderer.send('default','Logout','Are you sure?',['Logout','No'])
-            ipcRenderer.removeAllListeners('default')
-            ipcRenderer.on('default',(e,num)=> {
-                if(num === 1) {
-                    // LOGOUT
-                }
+            ipcRenderer.send('logout','Logout','Are you sure?',['Logout','No'])
+            ipcRenderer.removeAllListeners('logout')
+            ipcRenderer.on('logout',(e,num)=> {
+                ipcRenderer.send('logoutAction',num)
             })
         })
         if($('#setting-logout').length === 1) clearInterval(interval)

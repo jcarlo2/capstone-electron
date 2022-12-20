@@ -3,21 +3,7 @@ import {ajaxUrl} from "../../../function.js";
 
 export function startConnection() {
     setAddress()
-    setChangeButton()
     checkConnection()
-}
-
-function setChangeButton() {
-    const interval = setInterval(()=> {
-        $('#connection-change').off('click')
-        $('#connection-change').on('click',()=> {
-            ip.address = $('#connection-address').val()
-            ipcRenderer.send('setIp',ip.address)
-            $('#connection-change').prop('disabled',true)
-            setTimeout(()=> $('#connection-change').prop('disabled',false),15000)
-        })
-        if($('#connection-change').length === 1) clearInterval(interval)
-    })
 }
 
 function setAddress() {

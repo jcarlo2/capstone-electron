@@ -1,5 +1,5 @@
 import {i_add_generate_id, i_add_input, i_add_populate, ip, ipcRenderer, json_var,} from "../../../variable.js";
-import {ajaxDefaultArray, divide, multiply, setRowColor, subtract} from "../../../function.js";
+import {ajaxDefaultArray, divide, multiply, setProductNotification, setRowColor, subtract} from "../../../function.js";
 import {saveLog} from "../log/log.js";
 
 export function startInventoryAdd() {
@@ -55,7 +55,7 @@ function setDropDown() {
 function autogenerateId() {
     i_add_generate_id.intervalId = setInterval(()=> {
         $.ajax({
-            url: ip.url + '/api/inventory/is-exist-delivery-id',
+            url: ip.address + '/api/inventory/is-exist-delivery-id',
             dataType: 'json',
             contentType: 'application/json',
             data: {
@@ -141,6 +141,7 @@ function checkInventoryModalButton(quantity,cost) {
 }
 
 function populateProductList(data) {
+    setProductNotification($('#notification'),data)
     $('#inventory-add-product').empty()
     for(let i=0;i<data.length;i++) {
         const id = data[i]['id']
@@ -266,7 +267,7 @@ $('#inventory-add-modal').on('hidden.bs.modal',()=> {
 
 function generateId() {
     $.ajax({
-        url: ip.url + '/api/inventory/generate-id-delivery',
+        url: ip.address + '/api/inventory/generate-id-delivery',
         success: (response)=> {
             $('#inventory-add-report').text('ID: ' + response)
         }
@@ -292,7 +293,7 @@ function makeReport() {
 
 function saveReport(id) {
     $.ajax({
-        url: ip.url + '/api/inventory/save-delivery-report',
+        url: ip.address + '/api/inventory/save-delivery-report',
         contentType: 'application/json',
         data: JSON.stringify(json_var.i_add_report),
         type: 'POST',
@@ -304,7 +305,7 @@ function saveReport(id) {
 
 function saveReportItem(id) {
     $.ajax({
-        url: ip.url + '/api/inventory/save-delivery-report-item',
+        url: ip.address + '/api/inventory/save-delivery-report-item',
         contentType: 'application/json',
         data: JSON.stringify(json_var.i_add_table),
         type: 'POST',

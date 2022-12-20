@@ -1,12 +1,10 @@
 export const {ipcRenderer} = require('electron')
 export const path = require('platform-folders')
 export const xlsx = require('xlsx-js-style')
-export const ip = {
-    'http': 'http://',
-    'address': '000.000.000.000',
-    'port': ':8091',
-    'url': 'http://000.000.000:8091',
-}
+export const fs = require('fs')
+export const ipAdd = require('ip')
+export const ip = {'address': require('ip').address()}
+
 class RowStockColor {
     _red = 50
     _yellow = 100
@@ -118,79 +116,130 @@ export const user_list = new IntervalVariable()
 
 
 class Buttons {
-    _transactionAdd
-    _transactionReturn
-    _transactionHistory
-    _inventoryAdd
-    _inventoryNull
-    _inventoryHistory
-    _inventoryProduct
+    _transaction
+    _inventory
+    _report
+    _log
+    _setting
+    _tAdd
+    _tReturn
+    _tHistory
+    _iAdd
+    _iNull
+    _iHistory
+    _iProduct
 
-    get transactionAdd() {
-        return this._transactionAdd;
+    get transaction() {
+        return this._transaction
     }
 
-    set transactionAdd(value) {
-        this._transactionAdd = value;
+    set transaction(value) {
+        this._transaction = value
     }
 
-    get transactionReturn() {
-        return this._transactionReturn;
+    get inventory() {
+        return this._inventory
     }
 
-    set transactionReturn(value) {
-        this._transactionReturn = value;
+    set inventory(value) {
+        this._inventory = value
     }
 
-    get transactionHistory() {
-        return this._transactionHistory;
+    get report() {
+        return this._report
     }
 
-    set transactionHistory(value) {
-        this._transactionHistory = value;
+    set report(value) {
+        this._report = value
     }
 
-    get inventoryAdd() {
-        return this._inventoryAdd;
+    get log() {
+        return this._log
     }
 
-    set inventoryAdd(value) {
-        this._inventoryAdd = value;
+    set log(value) {
+        this._log = value
     }
 
-    get inventoryNull() {
-        return this._inventoryNull;
+    set setting(value) {
+        this._setting = value
     }
 
-    set inventoryNull(value) {
-        this._inventoryNull = value;
+    get setting() {
+        return this._setting
     }
 
-    get inventoryHistory() {
-        return this._inventoryHistory;
+    get tAdd() {
+        return this._tAdd;
     }
 
-    set inventoryHistory(value) {
-        this._inventoryHistory = value;
+    set tAdd(value) {
+        this._tAdd = value;
     }
 
-    get inventoryProduct() {
-        return this._inventoryProduct;
+    get tReturn() {
+        return this._tReturn;
     }
 
-    set inventoryProduct(value) {
-        this._inventoryProduct = value;
+    set tReturn(value) {
+        this._tReturn = value;
+    }
+
+    get tHistory() {
+        return this._tHistory;
+    }
+
+    set tHistory(value) {
+        this._tHistory = value;
+    }
+
+    get iAdd() {
+        return this._iAdd;
+    }
+
+    set iAdd(value) {
+        this._iAdd = value;
+    }
+
+    get iNull() {
+        return this._iNull;
+    }
+
+    set iNull(value) {
+        this._iNull = value;
+    }
+
+    get iHistory() {
+        return this._iHistory;
+    }
+
+    set iHistory(value) {
+        this._iHistory = value;
+    }
+
+    get iProduct() {
+        return this._iProduct;
+    }
+
+    set iProduct(value) {
+        this._iProduct = value;
     }
 }
 
 export const globalButtons = new Buttons()
 
 setInterval(()=> {
-    globalButtons.transactionAdd = $('#btn-transaction-add')
-    globalButtons.transactionReturn = $('#btn-transaction-return')
-    globalButtons.transactionHistory = $('#btn-transaction-history')
-    globalButtons.inventoryAdd = $('#btn-inventory-add')
-    globalButtons.inventoryNull = $('#btn-inventory-null')
-    globalButtons.inventoryHistory = $('#btn-inventory-history')
-    globalButtons.inventoryProduct = $('#btn-inventory-product')
-},1000)
+    globalButtons.transaction = $('#main-transaction')
+    globalButtons.inventory = $('#main-inventory')
+    globalButtons.report = $('#main-report')
+    globalButtons.log = $('#main-log')
+    globalButtons.setting = $('#main-setting')
+
+    globalButtons.tAdd = $('#btn-transaction-add')
+    globalButtons.tReturn = $('#btn-transaction-return')
+    globalButtons.tHistory = $('#btn-transaction-history')
+    globalButtons.iAdd = $('#btn-inventory-add')
+    globalButtons.iNull = $('#btn-inventory-null')
+    globalButtons.iHistory = $('#btn-inventory-history')
+    globalButtons.iProduct = $('#btn-inventory-product')
+},500)

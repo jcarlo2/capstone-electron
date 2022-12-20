@@ -1,15 +1,16 @@
-import {globalButtons} from "./variable.js";
+import {globalButtons, savePath} from "./variable.js";
 
 $().ready(()=> {
     const button = globalButtons
     $(document).on('keyup',(e)=> {
+        console.log(savePath.folderPath)
         if(e.code === 'Backquote') backquote()
         else if(e.code === 'Enter') enter()
-        else if(e.altKey && e.ctrlKey && e.key === '1' && $('#main-transaction').prop('disabled') === false) $('#main-transaction').click()
-        else if(e.altKey && e.ctrlKey && e.key === '2' && $('#main-inventory').prop('disabled') === false) $('#main-inventory').click()
-        else if(e.altKey && e.ctrlKey && e.key === '3' && $('#main-report').prop('disabled') === false) $('#main-report').click()
-        else if(e.altKey && e.ctrlKey && e.key === '4' && $('#main-log').prop('disabled') === false) $('#main-log').click()
-        else if(e.altKey && e.ctrlKey && e.key === '5') console.log('This is for settings')
+        else if(e.altKey && e.ctrlKey && e.key === '1' && button.transaction.prop('disabled') === false) button.transaction.click()
+        else if(e.altKey && e.ctrlKey && e.key === '2' && button.inventory.prop('disabled') === false) button.inventory.click()
+        else if(e.altKey && e.ctrlKey && e.key === '3' && button.report.prop('disabled') === false) button.report.click()
+        else if(e.altKey && e.ctrlKey && e.key === '4' && button.log.prop('disabled') === false) button.log.click()
+        else if(e.altKey && e.ctrlKey && e.key === '5') button.setting.click()
         else if(e.altKey && e.key === '1') altKeyAndOne()
         else if(e.altKey && e.key === '2') altKeyAndTwo()
         else if(e.altKey && e.key === '3') altKeyAndThree()
@@ -32,22 +33,22 @@ $().ready(()=> {
     }
 
     function altKeyAndOne() {
-        if(button.transactionAdd.length === 1 && button.transactionAdd.prop('disabled') === false) button.transactionAdd.click()
-        else if(button.inventoryAdd.length === 1 && button.inventoryAdd.prop('disabled') === false) button.inventoryAdd.click()
+        if(button.tAdd.length === 1 && button.tAdd.prop('disabled') === false) button.tAdd.click()
+        else if(button.iAdd.length === 1 && button.iAdd.prop('disabled') === false) button.iAdd.click()
     }
 
     function altKeyAndTwo() {
-        if(button.transactionReturn.length === 1 && button.transactionReturn.prop('disabled') === false) button.transactionReturn.click()
-        else if(button.inventoryNull.length === 1 && button.inventoryNull.prop('disabled') === false) button.inventoryNull.click()
+        if(button.tReturn.length === 1 && button.tReturn.prop('disabled') === false) button.tReturn.click()
+        else if(button.iNull.length === 1 && button.iNull.prop('disabled') === false) button.iNull.click()
     }
 
     function altKeyAndThree() {
-        if(button.transactionHistory.length === 1 && button.transactionHistory.prop('disabled') === false) button.transactionHistory.click()
-        else if(button.inventoryHistory.length === 1 && button.inventoryHistory.prop('disabled') === false) button.inventoryHistory.click()
+        if(button.tHistory.length === 1 && button.tHistory.prop('disabled') === false) button.tHistory.click()
+        else if(button.iHistory.length === 1 && button.iHistory.prop('disabled') === false) button.iHistory.click()
     }
 
     function altKeyAndFour() {
-        if(button.inventoryProduct.length === 1 && button.inventoryProduct.prop('disabled') === false) button.inventoryProduct.click()
+        if(button.iProduct.length === 1 && button.iProduct.prop('disabled') === false) button.iProduct.click()
     }
 })
 

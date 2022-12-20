@@ -10,46 +10,45 @@ export function startGenerate() {
 function setExportButton(transactionSummary,voidSummary,deliverySummary,transactionProducts,voidProducts,deliveryProducts,start,end) {
     $('#generate-export').off('click')
     $('#generate-export').on('click', ()=> {
-        ipcRenderer.send('default','Export','Export as Excel or Microsoft Word?',['Excel','MS Word','Cancel'])
+        ipcRenderer.send('default','Export','Export report as Excel?',['Yes','Cancel'])
         ipcRenderer.removeAllListeners('default')
         ipcRenderer.on('default',(e,num)=> {
             if(num === 0) makeExcelFile(transactionSummary,voidSummary,deliverySummary,transactionProducts,voidProducts,deliveryProducts,start,end)
-            else if(num === 1) makeMsWordFile(transactionSummary,voidSummary,deliverySummary,transactionProducts,voidProducts,deliveryProducts)
         })
     })
 }
 
-function makeMsWordFile(transactionSummary,voidSummary,deliverySummary,transactionProducts,voidProducts,deliveryProducts) {
-
-}
-
 function makeExcelFile(transactionSummary,voidSummary,deliverySummary,transactionProducts,voidProducts,deliveryProducts,start,end) {
-    ajaxUrl('/api/date/get-date').then((response)=> {
-        const user = $('#main-user-name').text()
-        const book = xlsx.utils.book_new()
-        const transactionSheets = setTransactionSheets(transactionProducts)
-        const voidSheets = setVoidSheets(voidProducts)
-        const deliverySheets = setDeliverySheet(deliveryProducts)
-        const summarySheet = setSummarySheet(transactionSummary,voidSummary,deliverySummary,start,end,response)
+    ajaxUrl('/api/date/get-date').then((date)=> {
+        ajaxUrl('/api/transaction/get-earliest-transaction').then((earliestTransaction)=> {
+            const user = $('#main-user-name').text()
+            const book = xlsx.utils.book_new()
+            const transactionSheets = setTransactionSheets(transactionProducts)
+            const voidSheets = setVoidSheets(voidProducts)
+            const deliverySheets = setDeliverySheet(deliveryProducts)
+            const summarySheet = setSummarySheet(transactionSummary,voidSummary,deliverySummary,start,end,date,earliestTransaction)
 
-        xlsx.utils.book_append_sheet(book,summarySheet,'Summary')
-        xlsx.utils.book_append_sheet(book,transactionSheets[2],'Transaction (Name)')
-        xlsx.utils.book_append_sheet(book,transactionSheets[0],'Transaction (Quantity)')
-        xlsx.utils.book_append_sheet(book,transactionSheets[1],'Transaction (Profit)')
+            xlsx.utils.book_append_sheet(book,summarySheet,'Summary')
+            xlsx.utils.book_append_sheet(book,transactionSheets[2],'Transaction (Name)')
+            xlsx.utils.book_append_sheet(book,transactionSheets[0],'Transaction (Quantity)')
+            xlsx.utils.book_append_sheet(book,transactionSheets[1],'Transaction (Profit)')
 
-        xlsx.utils.book_append_sheet(book,voidSheets[2],'Void (Name)')
-        xlsx.utils.book_append_sheet(book,voidSheets[0],'Void (Quantity)')
-        xlsx.utils.book_append_sheet(book,voidSheets[1],'Void (Loss)')
+            xlsx.utils.book_append_sheet(book,voidSheets[2],'Void (Name)')
+            xlsx.utils.book_append_sheet(book,voidSheets[0],'Void (Quantity)')
+            xlsx.utils.book_append_sheet(book,voidSheets[1],'Void (Loss)')
 
-        xlsx.utils.book_append_sheet(book,deliverySheets[2],'Delivery (Name)')
-        xlsx.utils.book_append_sheet(book,deliverySheets[0],'Delivery (Quantity)')
-        xlsx.utils.book_append_sheet(book,deliverySheets[1],'Delivery (Cost)')
-        xlsx.writeFile(book, savePath.folderPath + '/' + user + '-' + response.replaceAll(':','-').replaceAll(' ','-') + '.xlsx')
+            xlsx.utils.book_append_sheet(book,deliverySheets[2],'Delivery (Name)')
+            xlsx.utils.book_append_sheet(book,deliverySheets[0],'Delivery (Quantity)')
+            xlsx.utils.book_append_sheet(book,deliverySheets[1],'Delivery (Cost)')
+            const filePath = `${savePath.folderPath}\\${user}-${date.replaceAll(':','-').replaceAll(' ','-')}.xlsx`
+            xlsx.writeFile(book, filePath)
+            ipcRenderer.send('showMessage','Export', `Export is successful.\nPath: ${filePath}`)
+        })
     })
 }
 
-function setSummarySheet(transactionSummary,voidSummary,deliverySummary,start,end,date) {
-    start = start === '' ? 'Initial' : start
+function setSummarySheet(transactionSummary,voidSummary,deliverySummary,start,end,date,time) {
+    start = start === '' ? time : start
     end = end === '' ? date.split(' ')[0] : end
     const profit = transactionSummary['totalProfit']
     const loss = voidSummary['totalLoss']
@@ -59,15 +58,10 @@ function setSummarySheet(transactionSummary,voidSummary,deliverySummary,start,en
     const deliveryHex = 'ADD8E6'
     const data = [
         [
-            { v: 'Total Net Income', t: 's', s: setSummaryHeader(incomeHex,'solid')},
+            { v: `Total Net Income (${start} To ${end})` , t: 's', s: setSummaryHeader(incomeHex,'solid')},
             { v: '', t: 's', s: setRowStyle(true,'FFFFFF')},
             { v: '', t: 's', s: setRowStyle(true,'FFFFFF')},
             { v: '', t: 's', s: setRowStyle(true,'FFFFFF')},
-            { v: '', t: 's', s: setSummaryHeader('FFFFFF','none')},
-            { v: 'Date:', t: 's', s: setSummaryHeader('e84343','solid')},
-            { v: start, t: 's', s: setSummaryHeader('e84343','solid')},
-            { v: 'To', t: 's', s: setSummaryHeader('e84343','solid')},
-            { v: end, t: 's', s: setSummaryHeader('e84343','solid')},
         ],
         [
             { v: 'Total Profit', t: 's', s: setRowStyle(true,incomeHex)},
@@ -167,7 +161,7 @@ function setDeliverySheet(deliveryProducts) {
 
 function populateDeliverySheetWithData(dataList,isCalculate) {
     const columnWidth = [{wch: 7},{wch: 9},{wch: 13},{wch: 13},{wch: 15}]
-    const headerStyle = { font: { name: 'Calibri', sz: 12, bold: true}, fill: { patternType: 'solid', fgColor: { rgb: 'ADD8E6' } }}
+    const headerStyle = { font: { name: 'Calibri', sz: 12, bold: true}, fill: { patternType: 'solid', fgColor: { rgb: '6b8c96' } }}
     const rowStyle = { font: { name: 'Calibri', sz: 12, bold: false}, fill: { patternType: 'solid', fgColor: { rgb: 'ADD8E6' } }}
 
     const sheet = [[
@@ -206,7 +200,7 @@ function setVoidSheets(voidProducts) {
 
 function populateVoidSheetWithData(dataList,isCalculate) {
     const columnWidth = [{wch: 7},{wch: 9},{wch: 11},{wch: 13},{wch: 12},{wch: 15}]
-    const headerStyle = { font: { name: 'Calibri', sz: 12, bold: true}, fill: { patternType: 'solid', fgColor: { rgb: 'CFCC1F' } }}
+    const headerStyle = { font: { name: 'Calibri', sz: 12, bold: true}, fill: { patternType: 'solid', fgColor: { rgb: '9c991f' } }}
     const rowStyle = { font: { name: 'Calibri', sz: 12, bold: false}, fill: { patternType: 'solid', fgColor: { rgb: 'CFCC1F' } }}
 
     const sheet = [[
@@ -247,8 +241,8 @@ function setTransactionSheets(transactionProducts) {
 
 function populateTransactionSheetWithData(dataList,isCalculate) {
     const columnWidth = [{wch: 7},{wch: 9},{wch: 10},{wch: 12},{wch: 13},{wch: 13},{wch: 16},{wch: 18},{wch: 17}]
-    const headerStyle = { font: { name: 'Calibri', sz: 12, bold: true}, fill: { patternType: 'solid', fgColor: { rgb: '21A359' } }}
-    const rowStyle = { font: { name: 'Calibri', sz: 12, bold: false}, fill: { patternType: 'solid', fgColor: { rgb: '21A359' } }}
+    const headerStyle = { font: { name: 'Calibri', sz: 12, bold: true}, fill: { patternType: 'solid', fgColor: { rgb: '197d44' } }}
+    const rowStyle = { font: { name: 'Calibri', sz: 12, bold: false}, fill: { patternType: 'solid', fgColor: { rgb: '19b35b' } }}
     const sheet = [[
         { v: 'ID', t: 's', s: headerStyle},
         { v: 'Name', t: 's', s: headerStyle},

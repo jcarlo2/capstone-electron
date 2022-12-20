@@ -1,5 +1,12 @@
 import {i_null_generate_id, i_null_populate, ip, ipcRenderer, json_var,} from "../../../variable.js";
-import {ajaxDefaultArray, clearTable, multiply, setBorderColorNonDecimal, setRowColor} from "../../../function.js";
+import {
+    ajaxDefaultArray,
+    clearTable,
+    multiply,
+    setBorderColorNonDecimal,
+    setProductNotification,
+    setRowColor
+} from "../../../function.js";
 import {saveLog} from "../log/log.js";
 
 export function startInventoryNull(){
@@ -72,7 +79,7 @@ function setSave() {
 function autogenerateId() {
     i_null_generate_id.intervalId = setInterval(()=> {
         $.ajax({
-            url: ip.url + '/api/inventory/is-exist-null-id',
+            url: ip.address + '/api/inventory/is-exist-null-id',
             dataType: 'json',
             contentType: 'application/json',
             data: {
@@ -87,7 +94,7 @@ function autogenerateId() {
 
 function generateId() {
     $.ajax({
-        url: ip.url + '/api/inventory/generate-id-null',
+        url: ip.address + '/api/inventory/generate-id-null',
         success: (response)=> {
             $('#inventory-null-report').text('ID: ' + response)
         }
@@ -108,6 +115,7 @@ export function setClearButton() {
 }
 
 function populateProductList(data) {
+    setProductNotification($('#notification'),data)
     $('#inventory-null-product').empty()
     for(let i=0;i<data.length;i++) {
         const id = data[i]['id']
@@ -155,7 +163,7 @@ function setAddNullProduct(quantity,data) {
     $('#inventory-null-btn-modal').off('click')
     $('#inventory-null-btn-modal').on('click',()=> {
         $.ajax({
-            url: ip.url + '/api/product/verify-stock',
+            url: ip.address + '/api/product/verify-stock',
             type: 'GET',
             data: {
               'id': data['id'],
@@ -276,7 +284,7 @@ function makeReport() {
 
 function saveReport() {
     $.ajax({
-        url: ip.url + '/api/inventory/save-report-null',
+        url: ip.address + '/api/inventory/save-report-null',
         contentType: 'application/json',
         data: JSON.stringify(json_var.i_null_report[0]),
         type: 'POST',
@@ -289,7 +297,7 @@ function saveReport() {
 function saveReportItem(id) {
     setItem()
     $.ajax({
-        url: ip.url + '/api/inventory/save-null-item',
+        url: ip.address + '/api/inventory/save-null-item',
         contentType: 'application/json',
         data: JSON.stringify(json_var.i_null_report_item),
         type: 'POST',

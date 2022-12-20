@@ -123,7 +123,7 @@ export function setDelete() {
 
 function archiveReport(id) {
     $.ajax({
-        url: ip.url + '/api/transaction/archive',
+        url: ip.address + '/api/transaction/archive',
         type: 'POST',
         data:{'id': id},
         success: (response)=> {

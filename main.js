@@ -3,13 +3,6 @@ const electron = require('electron')
 const path = require('path')
 const {app, BrowserWindow, Menu, ipcMain, dialog} = electron
 const lock = app.requestSingleInstanceLock()
-const ipMain = {
-    'http': 'http://',
-    'address': '000.000.000.000',
-    'port': ':8091',
-    'url': 'http://000.000.000:8091',
-}
-
 const role = {'role': -1}
 
 let logInWindow
@@ -17,16 +10,13 @@ let mainWindow
 let settingWindow
 
 let defaultResponse
+let logoutResponse
 let returnResponse
 let deliveryResponse
 let nullResponse
 let inventoryDelete
 let backToTransactionReturn
 let buttonArray
-
-app.on('window-all-closed', () => {
-    app.quit()
-})
 
 if(!lock) app.quit()
 else {
@@ -41,6 +31,11 @@ else {
     })
 
     app.on('ready',()=> {
+        app.on('window-all-closed',()=> {
+            console.log('ALL CLOSE')
+            app.quit()
+        })
+
         logInWindow = new BrowserWindow({
             resizable: false,
             webPreferences: {
@@ -56,7 +51,8 @@ else {
             logInWindow.maximize()
             // logInWindow.webContents.openDevTools()
             logInWindow.on('closed', ()=> {
-                logInWindow = null
+                settingWindow.close()
+                mainWindow.close()
             })
         })
     })
@@ -75,11 +71,11 @@ function createMainWindow(filePath) {
 
     mainWindow.loadFile(filePath).then(()=> {
         mainWindow.maximize()
-        // mainWindow.hide()
+        mainWindow.hide()
         mainWindow.on('closed',()=> {
-            app.quit()
-            mainWindow = null
-            settingWindow = null
+           mainWindow = null
+           settingWindow = null
+           logInWindow = null
         })
     })
 }
@@ -87,6 +83,7 @@ function createMainWindow(filePath) {
 function createSettingWindow(filePath) {
     settingWindow = new BrowserWindow({
         resizable: false,
+        closable: false,
         width: 500,
         height: 500,
         webPreferences: {
@@ -98,14 +95,21 @@ function createSettingWindow(filePath) {
     })
 
     settingWindow.loadFile(filePath).then(()=> {
-        settingWindow.hide()
-        settingWindow.on('close',(event)=> {
-            // event.preventDefault()
+        // settingWindow.hide()
+        // settingWindow.webContents.openDevTools()
+        settingWindow.on('minimize',()=> {
             settingWindow.hide()
         })
     })
 }
 
+ipcMain.on('logoutAction',(e,num)=> {
+    if(num === 0) {
+        if(settingWindow) settingWindow.hide()
+        if(mainWindow) mainWindow.hide()
+        setTimeout(()=> logInWindow.show(),1000)
+    } else settingWindow.focus()
+})
 
 ipcMain.on('setting',()=> {
     if(settingWindow.isVisible()) settingWindow.hide()
@@ -124,26 +128,17 @@ ipcMain.on('setRole',(e, roleTemp)=> {
     role.role = roleTemp
 })
 
-ipcMain.on('setIp',(e,address)=> {
-    ipMain.address = address
-    ipMain.url = ipMain.http + address + ipMain.port
-})
-
-ipcMain.on('getIp',()=> {
-    if(settingWindow) settingWindow.webContents.send('getIp',ipMain)
-    if(logInWindow) logInWindow.webContents.send('getIp',ipMain)
-    if(mainWindow) mainWindow.webContents.send('getIp',ipMain)
-})
-
-
 ipcMain.on('login:verify',(e,is_verified,id,ip,password)=> {
-    if(is_verified && mainWindow === undefined) {
+    if(is_verified && !mainWindow) {
         createMainWindow('main.html')
         createSettingWindow('setting.html')
-        mainWindow.webContents.openDevTools()
-        // settingWindow.webContents.openDevTools()
+        // mainWindow.webContents.openDevTools()
         mainWindow.webContents.once('did-finish-load',()=> mainWindow.webContents.send('login:verify',id,ip,password))
         logInWindow.hide()
+    }else if(is_verified && mainWindow) {
+        logInWindow.hide()
+        mainWindow.show()
+        settingWindow.hide()
     }
 })
 
@@ -180,6 +175,18 @@ ipcMain.on('default',(e,title,message,button)=> {
         buttons:button
     })
     mainWindow.webContents.send('default', defaultResponse)
+})
+
+ipcMain.on('logout',(e,title,message,button)=> {
+    logoutResponse = dialog.showMessageBoxSync(mainWindow,{
+        title: title,
+        message: message,
+        type: 'none',
+        noLink: true,
+        defaultId: button.length - 1,
+        buttons:button
+    })
+    settingWindow.webContents.send('logout', logoutResponse)
 })
 
 ipcMain.on('buttonArray',(e,title,message,button,def)=> {

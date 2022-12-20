@@ -34,7 +34,7 @@ function setReturnResetButton() {
             const id = $('#right-return-id').val()
             const timestamp = $('#right-return-date').val()
             $.ajax({
-                url: ip.url + '/api/transaction/find-all-item',
+                url: ip.address + '/api/transaction/find-all-item',
                 type: 'GET',
                 contentType: 'application/json',
                 data:{
@@ -85,7 +85,7 @@ function populate(data) {
 function setClick(id,timestamp,total,excess) {
     $('#return-'+id).on('click',()=> {
         $.ajax({
-            url: ip.url + '/api/transaction/new-report-id',
+            url: ip.address + '/api/transaction/new-report-id',
             type: 'GET',
             contentType: 'application/json',
             data:{'id': id},
@@ -145,7 +145,7 @@ function setReturnedItemModal(data,row,i,timestamp) {
 function getOriginalData(i,productId,capital,timestamp) {
     const id = $('#right-return-id').val()
     $.ajax({
-        url: ip.url + '/api/transaction/find-all-item',
+        url: ip.address + '/api/transaction/find-all-item',
         type: 'GET',
         contentType: 'application/json',
         data:{
@@ -357,7 +357,7 @@ function checkReasons(table,reason) {
 
 export function invalidateReport(id) {
     $.ajax({
-        url: ip.url + '/api/transaction/invalidate-report',
+        url: ip.address + '/api/transaction/invalidate-report',
         contentType: 'application/json',
         dataType: 'json',
         data: {'id': id},
@@ -408,7 +408,7 @@ function setNullItems(id) {
 
 function saveNullItems() {
     $.ajax({
-        url: ip.url + '/api/inventory/save-null-item',
+        url: ip.address + '/api/inventory/save-null-item',
         contentType: 'application/json',
         type: 'POST',
         dataTYpe: 'json',
@@ -421,7 +421,7 @@ function saveNullItems() {
 
 function makeDeliveryReport(isRefund) {
     $.ajax({
-        url: ip.url + '/api/inventory/generate-id-delivery',
+        url: ip.address + '/api/inventory/generate-id-delivery',
         success: (response)=> {
             const total = filterNullItemsToDeliveryItems(response)
             const user = $('#main-user-name').text()
@@ -446,7 +446,7 @@ function makeDeliveryReport(isRefund) {
 
 function saveDeliveryReport() {
     $.ajax({
-        url: ip.url + '/api/inventory/save-delivery-report',
+        url: ip.address + '/api/inventory/save-delivery-report',
         contentType: 'application/json',
         dataType: 'json',
         type: 'POST',
@@ -456,7 +456,7 @@ function saveDeliveryReport() {
 
 function saveDeliveryItems() {
     $.ajax({
-        url: ip.url + '/api/inventory/save-delivery-report-item',
+        url: ip.address + '/api/inventory/save-delivery-report-item',
         contentType: 'application/json',
         dataType: 'json',
         type: 'POST',
@@ -508,7 +508,7 @@ function clearField() {
 
 function saveNullReport() {
     $.ajax({
-        url: ip.url + '/api/inventory/save-report-null',
+        url: ip.address + '/api/inventory/save-report-null',
         contentType: 'application/json',
         type: 'POST',
         dataTYpe: 'json',
@@ -519,7 +519,7 @@ function saveNullReport() {
 function makeNullReport(isRefund) {
     const newId = $('#right-return-new-id').val()
     $.ajax({
-        url: ip.url + '/api/inventory/generate-id-null-return',
+        url: ip.address + '/api/inventory/generate-id-null-return',
         data: {
           'link': newId
         },

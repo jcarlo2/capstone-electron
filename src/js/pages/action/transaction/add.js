@@ -12,8 +12,7 @@ import {
     ajaxDefaultArray,
     ajaxPostStringify, ajaxUrl,
     divide,
-    multiply,
-    setRowColor,
+    multiply, setProductNotification,
     subtract
 } from "../../../function.js";
 import {invalidateReport} from "./return.js";
@@ -95,6 +94,7 @@ function startSearch() {
 }
 
 function populateProductList(data) {
+    setProductNotification($('#notification'),data)
     const list = $('#transaction-add-product')
     list.empty()
     for(let i=0;i<data.length;i++) {
@@ -111,7 +111,7 @@ function populateProductList(data) {
                     </tr>`
         list.append(row)
         setClick(data[i],$('#transaction-add-table-'+id))
-        setRowColor($('#transaction-add-table-'+id),quantity)
+        // setRowColor($('#transaction-add-table-'+id),quantity)
     }
 }
 
@@ -136,7 +136,7 @@ $('#transaction-add-quantity').on('keyup',()=> {
     let quantity = $('#transaction-add-quantity').val()
     quantity = quantity === '' ? 0 : quantity
     $.ajax({
-        url: ip.url + '/api/product/quantity-discount',
+        url: ip.address + '/api/product/quantity-discount',
         contentType: 'application/json',
         data: {
             'id': id,
@@ -172,7 +172,7 @@ $('#transaction-add-btn').on('click',()=> {
     const id = $('#transaction-add-hidden').prop('class').split(' ')[0]
     const quantity = $('#transaction-add-quantity').val()
     $.ajax({
-        url: ip.url + '/api/product/verify-stock',
+        url: ip.address + '/api/product/verify-stock',
         contentType: 'application/json',
         data: {
             'id': id,
@@ -180,7 +180,7 @@ $('#transaction-add-btn').on('click',()=> {
         },
         success: (response)=> {
             if(response) addProductToLeftList()
-            else ipcRenderer.send('showError','Transaction Add Product', 'Error: invalid stock')
+            else ipcRenderer.send('showError','Transaction Add Product', 'Invalid: Insufficient stock')
         }
     })
 })
@@ -277,7 +277,7 @@ $('#transaction-left-edit-quantity').on('keyup',()=> {
     let quantity = $('#transaction-left-edit-quantity').val()
     quantity = quantity === '' ? 0 : quantity
     $.ajax({
-        url: ip.url + '/api/product/quantity-discount',
+        url: ip.address + '/api/product/quantity-discount',
         contentType: 'application/json',
         data: {
             'id': id,
@@ -313,7 +313,7 @@ $('#transaction-left-edit-button').on('click',()=> {
     const id = $('#transaction-left-edit-hidden').prop('class').split(' ')[0]
     const quantity = $('#transaction-left-edit-quantity').val()
     $.ajax({
-        url: ip.url + '/api/product/verify-stock',
+        url: ip.address + '/api/product/verify-stock',
         contentType: 'application/json',
         data: {
             'id': id,
@@ -501,7 +501,7 @@ function saveReturnTransaction(n_item,n_report,d_item,d_report) {
 
 function generateId() {
     $.ajax({
-        url: ip.url + '/api/transaction/generate-report-id',
+        url: ip.address + '/api/transaction/generate-report-id',
         success: (response)=> {
             $('#transaction-left-add-report').text('ID: ' + response)
         }

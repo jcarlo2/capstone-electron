@@ -103,7 +103,8 @@ function createAccount(id,password,firstName,lastName) {
         'firstName': firstName,
         'lastName': lastName,
         'role': 1,
-        'isSave': false
+        'isActive:': '1',
+        'isSave': false,
     }
 
     ajaxPostStringify('/api/user/create', user)

@@ -1,4 +1,5 @@
 import {
+    connection_checker,
     i_add_generate_id,
     i_add_input,
     i_add_populate,
@@ -8,7 +9,7 @@ import {
     i_product_archive,
     i_product_discount,
     ip,
-    ipcRenderer,
+    ipAdd,
     json_var,
     log_populate,
     stockInfo,
@@ -19,7 +20,8 @@ import {
     t_history_populate,
     t_ret_date,
     t_ret_new_total,
-    t_ret_populate
+    t_ret_populate,
+    user_list
 } from "./variable.js";
 
 export function add(a, b) {
@@ -71,6 +73,8 @@ export function clearIntervals() {
     clearInterval(i_product_discount.intervalId)
     clearInterval(i_product_archive.intervalId)
     clearInterval(log_populate.intervalId)
+    clearInterval(connection_checker.intervalId)
+    clearInterval(user_list.intervalId)
 }
 
 export function getDate() {
@@ -112,13 +116,20 @@ export function setBorderColorNonDecimal(quantity,elem) {
 
 export function ajaxUrl(url) {
     return $.ajax({
-        url: ip.url + url
+        url: ip.address + url
+    })
+}
+
+export function ajaxUrlPost(url) {
+    return $.ajax({
+        url: ip.address + url,
+        type: 'POST'
     })
 }
 
 export function ajaxPostStringify(url, json_data) {
     return $.ajax({
-        url: ip.url + url,
+        url: ip.address + url,
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(json_data)
@@ -127,7 +138,7 @@ export function ajaxPostStringify(url, json_data) {
 
 export function ajaxPostNonString(url, json_data) {
     return $.ajax({
-        url: ip.url + url,
+        url: ip.address + url,
         type: 'POST',
         data: json_data
     })
@@ -135,20 +146,9 @@ export function ajaxPostNonString(url, json_data) {
 
 export function ajaxDefaultArray(url,array) {
     return $.ajax({
-        url: ip.url + url,
+        url: ip.address + url,
         data: array
     })
-}
-
-export function autoIpSetter() {
-    setInterval(()=> {
-        ipcRenderer.send('getIp')
-        ipcRenderer.removeAllListeners('getIp')
-        ipcRenderer.on('getIp',(e,ipMain)=> {
-            ip.address = ipMain.address
-            ip.url = ipMain.url
-        })
-    },1000)
 }
 
 export function capitalizeWords(string) {
@@ -157,3 +157,56 @@ export function capitalizeWords(string) {
     }).join(' ')
 }
 
+export function autoSetIp() {
+    ip.address = 'http://' + ipAdd.address() + ':8091'
+}
+
+export function setProductNotification(button, data) {
+    if(setNotification(button,data)) button.addClass('d-none')
+    else {
+        button.removeClass('d-none')
+        button.off('click')
+        button.on('click',()=> {
+            $('#product-notification-modal').modal('show')
+            $('#product-notification-body').empty()
+            let warning
+            let num = 1
+            for(let i in data) {
+                const stock = parseInt(data[i]['quantityPerPieces'])
+                warning = stock <= stockInfo.red ? 'Critical Stock' : 'Low Stock'
+                const row = `<tr id="notification-${i}" class="d-flex"> 
+                                <th class="col-1 text-start">${num.toLocaleString()}</th>
+                                <td class="col-3 text-start">${data[i]['id']}</td>
+                                <td class="col-3 text-start">${data[i]['name']}</td>
+                                <td class="col-2 text-center" >${stock.toLocaleString()}</td>
+                                <td class="col-3 text-center">${warning}</td>
+                            </tr>`
+                if(stock <= stockInfo.yellow) {
+                    $('#product-notification-body').append(row)
+                    num++
+                }
+                setRowColor($('#notification-'+i),stock)
+            }
+        })
+    }
+}
+
+function setNotification(button,data) {
+    let isHide = true
+    let warning = false
+    for(let i in data) {
+        const stock = parseInt(data[i]['quantityPerPieces'])
+        if(!warning) warning = stock <= stockInfo.red
+        if(stock <= stockInfo.yellow) isHide = false
+    }
+
+    if(warning) {
+        $('#notification-exclamation').addClass('text-danger')
+        $('#notification-exclamation').removeClass('text-warning')
+    } else {
+        $('#notification-exclamation').addClass('text-warning')
+        $('#notification-exclamation').removeClass('text-danger')
+    }
+
+    return isHide
+}

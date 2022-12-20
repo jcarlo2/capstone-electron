@@ -4,7 +4,7 @@ import {
     ajaxDefaultArray,
     ajaxPostNonString,
     ajaxPostStringify,
-    ajaxUrl,
+    ajaxUrl, setProductNotification,
     setRowColor
 } from "../../../function.js";
 import {saveLog} from "../log/log.js";
@@ -228,6 +228,7 @@ function setAddDiscountSave() {
             .then(()=> {
                 saveLog('Product Discount Add', `Added new discount to a product = ID: ${id} / Quantity: ${quantity} / Discount: ${discount} %`)
                 ipcRenderer.send('showMessage','Add Product Discount', `${id}: successfully added new discount.`)
+                $('#inventory-history-discount-list').modal('hide')
             })
     })
 }
@@ -314,6 +315,7 @@ function setSearch() {
 }
 
 function populateProductList(data) {
+    setProductNotification($('#notification'),data)
     const list = $('#inventory-product-product')
     list.empty()
     for(let i in data) {
