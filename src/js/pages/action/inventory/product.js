@@ -27,7 +27,8 @@ function hideElement() {
     ipcRenderer.removeAllListeners('getRoleSettingUser')
     ipcRenderer.send('getRoleSettingUser')
     ipcRenderer.on('getRoleSettingUser',(e,role)=> {
-        if(role === 1) {
+        if(role === -1) hideElement()
+        else if(role === 1) {
             $('#product-left-add').addClass('d-none')
             $('#product-left-update').addClass('d-none')
             $('#product-left-archive').addClass('d-none')

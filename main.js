@@ -143,7 +143,7 @@ ipcMain.on('login:verify',(e,is_verified,id,ip,password)=> {
     if(is_verified && !mainWindow) {
         createMainWindow('main.html')
         createSettingWindow('setting.html')
-        // mainWindow.webContents.openDevTools()
+        mainWindow.webContents.openDevTools()
         mainWindow.webContents.once('did-finish-load',()=> mainWindow.webContents.send('login:verify',id,ip,password))
         logInWindow.hide()
     }else if(is_verified && mainWindow) {

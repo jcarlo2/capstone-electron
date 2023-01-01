@@ -243,8 +243,10 @@ function withReason(table,nullTable,price,discount,id,capital,name) {
     let retQuantity = $('#return-item-ret-1').val()
     quantity = quantity === '' ? 0 : quantity
     retQuantity = retQuantity === '' ? 0 : retQuantity
-    if(retQuantity <= 0) ipcRenderer.send('showError','Return item','Invalid: check returned item count')
-    else {
+    if(retQuantity <= 0) {
+        ipcRenderer.send('showError','Return item','Invalid: check returned item count')
+        $('#return-item-original-1').val(quantity)
+    } else {
         updateTable(table,quantity,price,total,id)
         updateNullTable(nullTable,id,price,retQuantity,discount,$('#return-item-drop').text(),capital,name)
     }
@@ -266,7 +268,6 @@ function noneReason(table,nullTable,id,quantity,price,discount) {
 }
 
 function updateNullTable(table,id,price,quantity,discount,reason,capital,name) {
-
     let flag = true
     for(let i=0;i<table.length;i++) {
         if(table[i]['id'] === id) {
@@ -277,7 +278,6 @@ function updateNullTable(table,id,price,quantity,discount,reason,capital,name) {
             break
         }
     }
-
     if(flag) {
         table[table.length] = {
             'num': '',
@@ -492,12 +492,12 @@ function filterNullItemsToDeliveryItems(id) {
 }
 
 function clearField() {
-    json_var.t_ret_table_null = []
-    json_var.t_ret_table = []
-    // setTimeout(()=> {
-    //     json_var.t_ret_table_null = []
-    //     json_var.t_ret_table = []
-    // },1000)
+    // json_var.t_ret_table_null = []
+    // json_var.t_ret_table = []
+    setTimeout(()=> {
+        json_var.t_ret_table_null = []
+        json_var.t_ret_table = []
+    },1000)
     $('#transaction-return-item-body').empty()
     $('#right-return-new-id').val('')
     $('#right-return-id').val('')
@@ -529,18 +529,20 @@ function makeNullReport(isRefund) {
             const table = json_var.t_ret_table_null
             let total = parseFloat('0')
             for(let i=0;i<table.length;i++) {
-                if(table[i]['reason'] === 'Exp/Dmg') total += table[i]['totalAmount']
+                const reason = table[i]['reason']
+                if(reason === 'Expired' || reason === 'Damaged' ) total += table[i]['totalAmount']
             }
             json_var.t_inventory_report_null = {
                 'id': response,
                 'user': user,
-                'total': total,
                 'date': '',
+                'total': total,
                 'timestamp': '',
                 'link': newId,
                 'isValid': '1',
                 'reason': 'Transaction Return'
             }
+
             setNullItems(response)
             if(isRefund) {
                 saveNullItems()

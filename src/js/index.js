@@ -25,7 +25,6 @@ $().ready(()=> {
 function setLogInButton() {
     $('#index-login').off('click')
     $('#index-login').on('click',()=> {
-        console.log(ip.address)
         $('#index-login').prop('disabled',true)
         $('#index-ip').prop('disabled',true)
         $('#index-login').text('Logging in')
