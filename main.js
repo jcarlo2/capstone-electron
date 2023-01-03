@@ -1,13 +1,12 @@
-
 const electron = require('electron')
 const path = require('path')
 const {app, BrowserWindow, Menu, ipcMain, dialog} = electron
 const lock = app.requestSingleInstanceLock()
 const role = {'role': -1}
 
-let logInWindow
-let mainWindow
-let settingWindow
+let logInWindow = null
+let mainWindow = null
+let settingWindow = null
 
 let defaultResponse
 let logoutResponse
@@ -51,8 +50,11 @@ else {
             logInWindow.maximize()
             // logInWindow.webContents.openDevTools()
             logInWindow.on('closed', ()=> {
-                settingWindow.close()
-                mainWindow.close()
+                if(settingWindow !== null) settingWindow.close()
+                if(mainWindow !== null) mainWindow.close()
+                mainWindow = null
+                logInWindow = null
+                settingWindow = null
             })
         })
     })
@@ -71,11 +73,13 @@ function createMainWindow(filePath) {
 
     mainWindow.loadFile(filePath).then(()=> {
         mainWindow.maximize()
-        mainWindow.hide()
+        // mainWindow.hide()
         mainWindow.on('closed',()=> {
-           mainWindow = null
-           settingWindow = null
-           logInWindow = null
+            if(settingWindow !== null) settingWindow.close()
+            if(logInWindow !== null) logInWindow.close()
+            mainWindow = null
+            logInWindow = null
+            settingWindow = null
         })
     })
 }
@@ -83,7 +87,8 @@ function createMainWindow(filePath) {
 function createSettingWindow(filePath) {
     settingWindow = new BrowserWindow({
         resizable: false,
-        closable: false,
+        // closable: false,
+        frame: false,
         width: 500,
         height: 500,
         webPreferences: {
@@ -95,10 +100,11 @@ function createSettingWindow(filePath) {
     })
 
     settingWindow.loadFile(filePath).then(()=> {
-        // settingWindow.hide()
+        settingWindow.hide()
         // settingWindow.webContents.openDevTools()
-        settingWindow.on('minimize',()=> {
-            settingWindow.hide()
+        settingWindow.on('minimize',()=> settingWindow.hide())
+        settingWindow.on('closed',()=> {
+            settingWindow = null
         })
     })
 }
@@ -112,7 +118,8 @@ ipcMain.on('logoutAction',(e,num)=> {
 })
 
 ipcMain.on('setting',()=> {
-    if(settingWindow.isVisible()) settingWindow.hide()
+    if(settingWindow === null) createSettingWindow('setting.html')
+    else if(settingWindow.isVisible()) settingWindow.hide()
     else settingWindow.show()
 })
 
