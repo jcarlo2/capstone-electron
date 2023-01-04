@@ -4,6 +4,15 @@ import {ipcRenderer, log_populate} from "../../../variable.js";
 export function startLog() {
     populateLogTable()
     setArchiveAll()
+    hideElement()
+}
+
+function hideElement() {
+    ipcRenderer.removeAllListeners('getRoleSettingUser')
+    ipcRenderer.send('getRoleSettingUser')
+    ipcRenderer.on('getRoleSettingUser',(e,role)=> {
+        if(role === 1) $('#log-archive-all').addClass('invisible')
+    })
 }
 
 function populateLogTable() {

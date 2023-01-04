@@ -11,25 +11,25 @@ export function startHistory() {
         const end = $('#transaction-history-end').val()
         const option = $('#transaction-history-option').text()
         if(search !== '') {
-            if(option === 'Report') ajaxDefaultArray('/api/transaction/search-valid-transaction',{'search': search}).then((response)=> populate(response))
-            else if(option === 'Archived') ajaxDefaultArray('/api/transaction/search-archived-transaction',{'search': search}).then((response)=> populate(response))
-            else ajaxDefaultArray('/api/transaction/search-all-transaction',{'search': search}).then((response)=> populate(response))
+            if(option === 'Report')         ajaxDefaultArray('/api/transaction/search-valid-transaction',{'search': search}).then((response)=> populate(response))
+            else if(option === 'Archived')  ajaxDefaultArray('/api/transaction/search-archived-transaction',{'search': search}).then((response)=> populate(response))
+            else                            ajaxDefaultArray('/api/transaction/search-all-transaction',{'search': search}).then((response)=> populate(response))
         }else if(start !== '' && end === '') {
-            if(option === 'Report') ajaxDefaultArray('/api/transaction/search-start',{'start': start}).then((response)=> populate(response))
+            if(option === 'Report')         ajaxDefaultArray('/api/transaction/search-start',{'start': start}).then((response)=> populate(response))
             else if(option === 'Archived')  ajaxDefaultArray('/api/transaction/search-archived-start',{'start': start}).then((response)=> populate(response))
-            else ajaxDefaultArray('/api/transaction/search-all-start',{'start': start}).then((response)=> populate(response))
+            else                            ajaxDefaultArray('/api/transaction/search-all-start',{'start': start}).then((response)=> populate(response))
         } else if(start === '' && end !== '') {
-            if(option === 'Report') ajaxDefaultArray('/api/transaction/search-end',{'end': end}).then((response)=> populate(response))
-            else if(option === 'Archived') ajaxDefaultArray('/api/transaction/search-archived-end',{'end': end}).then((response)=> populate(response))
-            else ajaxDefaultArray('/api/transaction/search-all-end',{'end': end}).then((response)=> populate(response))
+            if(option === 'Report')         ajaxDefaultArray('/api/transaction/search-end',{'end': end}).then((response)=> populate(response))
+            else if(option === 'Archived')  ajaxDefaultArray('/api/transaction/search-archived-end',{'end': end}).then((response)=> populate(response))
+            else    ajaxDefaultArray('/api/transaction/search-all-end',{'end': end}).then((response)=> populate(response))
         } else if(start !== '' && end !== '') {
-            if(option === 'Report') ajaxDefaultArray('/api/transaction/search-date',{'start':start,'end':end}).then((response)=> populate(response))
-            else if(option === 'Archived') ajaxDefaultArray('/api/transaction/search-archived-date',{'start':start,'end':end}).then((response)=> populate(response))
-            else ajaxDefaultArray('/api/transaction/search-all-date',{'start':start,'end':end}).then((response)=> populate(response))
+            if(option === 'Report')         ajaxDefaultArray('/api/transaction/search-date',{'start':start,'end':end}).then((response)=> populate(response))
+            else if(option === 'Archived')  ajaxDefaultArray('/api/transaction/search-archived-date',{'start':start,'end':end}).then((response)=> populate(response))
+            else                            ajaxDefaultArray('/api/transaction/search-all-date',{'start':start,'end':end}).then((response)=> populate(response))
         } else if(search !== undefined) {
-            if(option === 'Report') ajaxUrl('/api/transaction/get-all-valid-report').then((response)=> populate(response))
-            else if(option === 'All') ajaxUrl('/api/transaction/get-all-report').then((response)=> populate(response))
-            else ajaxUrl('/api/transaction/get-all-archived-report').then((response)=> populate(response))
+            if(option === 'Report')         ajaxUrl('/api/transaction/get-all-valid-report').then((response)=> populate(response))
+            else if(option === 'All')       ajaxUrl('/api/transaction/get-all-report').then((response)=> populate(response))
+            else                            ajaxUrl('/api/transaction/get-all-archived-report').then((response)=> populate(response))
         }
     },500)
 }
@@ -146,7 +146,12 @@ function setOption() {
         $('#transaction-history-option-1').off('click')
         $('#transaction-history-option-1').on('click',()=> {
             $('#transaction-history-option').text('Report')
-            $('#transaction-history-delete').removeClass('invisible')
+            ipcRenderer.removeAllListeners('getRoleSettingUser')
+            ipcRenderer.send('getRoleSettingUser')
+            ipcRenderer.on('getRoleSettingUser',(e,role)=> {
+                if(role === 1) $('#transaction-history-delete').addClass('invisible')
+                else $('#transaction-history-delete').removeClass('invisible')
+            })
             clear()
         })
 

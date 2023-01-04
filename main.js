@@ -76,10 +76,11 @@ function createMainWindow(filePath) {
         // mainWindow.hide()
         mainWindow.on('closed',()=> {
             if(settingWindow !== null) settingWindow.close()
-            if(logInWindow !== null) logInWindow.close()
             mainWindow = null
-            logInWindow = null
             settingWindow = null
+            setTimeout(()=> {
+                if(logInWindow !== null) logInWindow.show()
+            },500)
         })
     })
 }
@@ -111,9 +112,11 @@ function createSettingWindow(filePath) {
 
 ipcMain.on('logoutAction',(e,num)=> {
     if(num === 0) {
-        if(settingWindow) settingWindow.hide()
-        if(mainWindow) mainWindow.hide()
-        setTimeout(()=> logInWindow.show(),1000)
+        if(settingWindow) settingWindow.close()
+        if(mainWindow) mainWindow.close()
+        setTimeout(()=> {
+            logInWindow.show()
+        },1000)
     } else settingWindow.focus()
 })
 
@@ -129,6 +132,7 @@ ipcMain.on('getRoleMainTransaction',()=> {
 
 ipcMain.on('getRoleSettingUser',()=> {
     if(settingWindow) settingWindow.webContents.send('getRoleSettingUser',role.role)
+    if(mainWindow) mainWindow.webContents.send('getRoleSettingUser',role.role)
 })
 
 ipcMain.on('setRole',(e, roleTemp)=> {

@@ -147,7 +147,12 @@ function setOption() {
         $('#inventory-history-option-1').on('click',()=> {
             clear()
             $('#inventory-history-option').text('Null Report')
-            $('#inventory-history-archive').removeClass('invisible')
+            ipcRenderer.removeAllListeners('getRoleSettingUser')
+            ipcRenderer.send('getRoleSettingUser')
+            ipcRenderer.on('getRoleSettingUser',(e,role)=> {
+                if(role === 1) $('#inventory-history-archive').addClass('invisible')
+                else $('#inventory-history-archive').removeClass('invisible')
+            })
         })
 
         $('#inventory-history-option-2').off('click')
@@ -161,7 +166,12 @@ function setOption() {
         $('#inventory-history-option-3').on('click',()=> {
             clear()
             $('#inventory-history-option').text('Delivery Report')
-            $('#inventory-history-archive').removeClass('invisible')
+            ipcRenderer.removeAllListeners('getRoleSettingUser')
+            ipcRenderer.send('getRoleSettingUser')
+            ipcRenderer.on('getRoleSettingUser',(e,role)=> {
+                if(role === 1) $('#inventory-history-archive').addClass('invisible')
+                else $('#inventory-history-archive').removeClass('invisible')
+            })
         })
 
         $('#inventory-history-option-4').off('click')

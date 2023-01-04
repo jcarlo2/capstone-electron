@@ -4,6 +4,7 @@ export const xlsx = require('xlsx-js-style')
 export const fs = require('fs')
 export const ipAdd = require('ip')
 export const ip = {'address': require('ip').address()}
+export const role = {'role': '-1'}
 
 class RowStockColor {
     _red = 50

@@ -16,6 +16,7 @@ $().ready(() => {
     ipcRenderer.on('login:verify',(e, id,password)=> {
         const interval = setInterval(()=> {
             if(ip.address !==  'http://000.000.000A:8091') {
+                console.log(ip.address)
                 $('#main-user-name').text(id)
                 checkRole(id,password)
                 clearInterval(interval)

@@ -20,7 +20,23 @@ export function startInventoryProduct() {
     setDeactivateProductButton()
     setInactiveProductButtonToShowModal()
     setInactivateProductTable()
+    hideElement()
 }
+
+function hideElement() {
+    ipcRenderer.removeAllListeners('getRoleSettingUser')
+    ipcRenderer.send('getRoleSettingUser')
+    ipcRenderer.on('getRoleSettingUser',(e,role)=> {
+        if(role === 1) {
+            $('#product-left-add').addClass('d-none')
+            $('#product-left-update').addClass('d-none')
+            $('#product-left-archive').addClass('d-none')
+            $('#product-discount-add').addClass('d-none')
+            $('#inventory-product-archive').addClass('d-none')
+        }
+    })
+}
+
 function setInactiveProductButtonToShowModal() {
     const interval = setInterval(()=>{
         $('#inventory-product-archive').off('click')
